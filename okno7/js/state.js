@@ -20,6 +20,8 @@ function save(){S.savedAt=Date.now();store.set('save',S)}
 
 /* --- партия: какие правила, сюжеты и события выпали --- */
 const ARC_W={dubov:1.6,student:1,kuzmin:1,zhanna:1,it:1,babushka:1,deputy:1,notary:1,razan:1};
+/* тестовый режим: ?arcs=razan,notary в адресе принудительно ставит сюжетные линии в обычной партии (в «Смене дня» не действует) */
+function forcedArcs(){try{if(typeof location==='undefined'||(S&&S.daily))return[];const q=new URLSearchParams(location.search).get('arcs');return q?[...new Set(q.split(',').map(x=>x.trim()))].filter(id=>ARCS[id]).slice(0,3):[]}catch(e){return[]}}
 function setupRun(){
   const run={rules:{},params:{banned:pick(SERVICES_ALL),doctor:pick(DOCTORS),tariffDay:0},events:{},news:{},arcs:[]};
   S.run=run;S.arcs={};
@@ -37,8 +39,9 @@ function setupRun(){
   for(const id of fk){if(!nf)break;const need=RULES[id].need;const d=fdays.find(d=>!need||(run.rules[need]&&run.rules[need]<=d));
     if(d==null)continue;if(RULES[id].sample==='stamp'&&Object.keys(run.rules).some(x=>RULES[x].sample==='stamp'))continue;run.rules[id]=d;fdays=fdays.filter(x=>x!==d);nf--}
   /* сюжетные линии */
-  const w={...ARC_W},n=chance(.6)?3:2;
-  for(let i=0;i<n;i++){const id=wpick(w);delete w[id];run.arcs.push(id);S.arcs[id]={};ARCS[id].setup(S.arcs[id])}
+  const w={...ARC_W},n=chance(.6)?3:2,forced=forcedArcs();
+  const addArc=id=>{delete w[id];run.arcs.push(id);S.arcs[id]={};ARCS[id].setup(S.arcs[id])};
+  forced.forEach(addArc);for(let i=forced.length;i<n;i++)addArc(wpick(w));
   /* события смены */
   /* трудные выборы вечером */
   run.dilemmas={};const dfree=shuffle([3,4,5,6,7,8,9,10]);if(chance(.75))run.dilemmas[ri(4,8)]='op';shuffle(['vet','flood','lend']).slice(0,ri(1,2)).forEach(id=>{const d=dfree.find(x=>!run.dilemmas[x]);if(d)run.dilemmas[d]=id});

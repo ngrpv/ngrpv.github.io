@@ -28,6 +28,8 @@
 - `tests/run.js` — проверки без зависимостей: `node tests/run.js` (на GitHub запускается при каждом пуше, см. `.github/workflows/`)
 - `tools/` — загрузчик игры для Node и исходники картинок для превью (см. `tools/README.md`)
 
+Для проверки сюжетных линий: `?arcs=razan` (или `?arcs=razan,notary`) в адресе ставит их в обычную партию; в «Смене дня» параметр не действует. Id линий: `dubov student kuzmin zhanna it babushka deputy notary razan`.
+
 Прогресс, знаки отличия, выбранная сложность и результат «Смены дня» хранятся в `localStorage` под префиксом `okno7.`.
 
 ## Почему не ES-модули
