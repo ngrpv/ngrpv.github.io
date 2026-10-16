@@ -1,40 +1,10 @@
 // Автопрогон кампании «Следующий!» разными стратегиями.
-// Берёт игровую логику из js/*.js (порядок — по index.html) (генерация посетителей, проверка, решение, вечер, концовки)
-// и гоняет её без интерфейса. Запуск: node balance-sim.js [число_прогонов]
+// Берёт игровую логику из js/*.js (порядок — по index.html): генерация посетителей, проверка, решение, вечер, концовки
+// и гоняет её без интерфейса. Запуск: node balance-sim.js [число_прогонов] [easy|normal|hard]
 'use strict';
-const fs = require('fs');
-const path = require('path');
-
 // Игра разложена по js/*.js; порядок файлов берём из index.html, как это делает браузер.
-const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
-const srcs = [...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map(m => m[1]);
-const script = '(()=>{\n' + srcs.map(f => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n') + '\n})();';
-
-// Заглушка DOM: любой элемент принимает любые свойства и вызовы.
-function el() {
-  const f = function () {};
-  return new Proxy(f, {
-    get(t, k) {
-      if (k === Symbol.toPrimitive) return () => '';
-      if (k === 'then') return undefined;
-      if (k in t) return t[k];
-      return (t[k] = el());
-    },
-    set(t, k, v) { t[k] = v; return true; },
-    apply() { return el(); },
-  });
-}
-function load() {
-  const document = el();
-  document.querySelectorAll = () => [];
-  const window = { __OKNO_SIM__: {} };
-  const navigator = {};
-  // таймеры игре в прогоне не нужны
-  const noop = () => 0;
-  new Function('window', 'document', 'navigator', 'setInterval', 'setTimeout', 'requestAnimationFrame', script)(
-    window, document, navigator, noop, noop, noop);
-  return window.__OKNO_SIM__;
-}
+const { loadGame } = require('./tools/game-loader');
+const load = loadGame;
 const G = load();
 
 // Сколько посетителей успевает обслужить игрок за смену (480 игровых минут без обеда).
@@ -59,9 +29,9 @@ const STRATS = {
   obedient: { detect: 0.92, bribes: false, obey: true },
 };
 
-function runOne(stratName, roleName) {
+function runOne(stratName, roleName, diffName) {
   const st = STRATS[stratName];
-  G.S = G.freshState(roleName);
+  G.S = G.freshState(roleName, diffName);
   G.setupRun();
   G.S.sig = ['M0 0'];
   const trace = [];
@@ -111,12 +81,13 @@ function runOne(stratName, roleName) {
 
 function main() {
   const N = +process.argv[2] || 400;
+  const DIFF = process.argv[3] || 'normal';
   const rows = [];
   for (const role of Object.keys(G.ROLES)) {
     for (const s of Object.keys(STRATS)) {
       const ends = {}; let money = 0, days = 0, maxSus = 0, minLoy = 0, maxCom = 0, errs = 0;
       for (let i = 0; i < N; i++) {
-        const r = runOne(s, role);
+        const r = runOne(s, role, DIFF);
         ends[r.end] = (ends[r.end] || 0) + 1;
         const last = r.trace[r.trace.length - 1] || { money: 1500, loy: 0, com: 0, sus: 0 };
         money += last.money; days += r.day;
@@ -129,7 +100,7 @@ function main() {
       rows.push({ role, s, days: (days / N).toFixed(1), money: Math.round(money / N), minLoy: Math.round(minLoy / N), maxCom: Math.round(maxCom / N), maxSus: Math.round(maxSus / N), errPerDay: (errs / N).toFixed(1), ends: top });
     }
   }
-  console.log(`Прогонов на ячейку: ${N}`);
+  console.log(`Прогонов на ячейку: ${N}, сложность: ${DIFF}`);
   console.log('роль       стратегия   дней  деньги  мин.лоял  макс.жалоб  макс.ОБЭП  ошиб/день  концовки');
   for (const r of rows) console.log(`${r.role.padEnd(10)} ${r.s.padEnd(11)} ${r.days.padStart(4)} ${String(r.money).padStart(7)} ${String(r.minLoy).padStart(9)} ${String(r.maxCom).padStart(11)} ${String(r.maxSus).padStart(10)} ${r.errPerDay.padStart(10)}  ${r.ends}`);
   // какие концовки вообще достижимы
