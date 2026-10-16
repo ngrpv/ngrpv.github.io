@@ -53,7 +53,7 @@ function renderQueue(force){
 }
 let W=null,clockI=0;
 function openWindow(){
-  W={time:540,processed:0,errors:0,fines:0,bribes:0,idx:0,v:null,busy:false,lunchDone:false,notes:[],pirozhki:false,running:true,paused:0,sel:[],insp:false,ended:false,hintStep:-1,tut:S.day===1&&!store.get('tutDone')?0:-1,specials:planSpecials(),ret:null,pend:null,blogNote:false};
+  W={time:540,processed:0,errors:0,fines:0,bribes:0,idx:0,v:null,busy:false,lunchDone:false,notes:[],pirozhki:false,running:true,paused:0,sel:[],insp:false,ended:false,hintStep:-1,tut:S.day===1&&!store.get('tutDone')?0:-1,specials:S.daily?withSeed(hash(S.daily.seed,S.day),planSpecials):planSpecials(),ret:null,pend:null,blogNote:false};
   show('s-work');
   $('#b-ok').innerHTML=dStamp('ПРИНЯТО','#4b3fa3');$('#b-no').innerHTML=dStamp('ОТКАЗАНО','#b4222f');
   $('#b-book').innerHTML=`<svg viewBox="0 0 26 24"><path d="M2 4 Q8 2 13 5 Q18 2 24 4 V21 Q18 19 13 22 Q8 19 2 21Z" fill="#fbf8f0" stroke="#25242b" stroke-width="1.6" stroke-linejoin="round"/><path d="M13 5 V22" stroke="#25242b" stroke-width="1.4"/><path d="M5 8 h5 M5 11 h5 M5 14 h4 M16 8 h5 M16 11 h5" stroke="#8a8790" stroke-width="1.2"/></svg>Регламент`;
@@ -126,6 +126,7 @@ function say(text,expr,v){
   if(expr)setFace(v,expr);
   const my=++sayToken;bubble(true);const el=$('#bubble-t');el.textContent='';
   const cit=$('#cit');cit.classList.add('talking');
+  if(REDUCED){el.textContent=text;cit.classList.remove('talking');return Promise.resolve()}
   return new Promise(res=>{let i=0;clearInterval(sayT);sayT=setInterval(()=>{if(my!==sayToken){clearInterval(sayT);res();return}i+=1;el.textContent=text.slice(0,i);if(i%3===0)SND.play('tick');if(i>=text.length){clearInterval(sayT);cit.classList.remove('talking');res()}},22)});
 }
 function setFace(v,expr){$('#cit').innerHTML=faceSVG(v.face,expr);}
@@ -139,6 +140,7 @@ async function callNext(){
   S.ticket++;SND.play('ding');led(`А-${pad3(S.ticket)} → ОКНО 7`);announce(S.ticket);
   const sp=W.specials[W.idx];W.idx++;
   if(sp&&sp.call)await phoneCall(sp.call);
+  W.vc=0;
   const v=sp?sp.make():genVisitor();
   if(sp){sp.done=true;if(sp.call)v.called=true}
   W.v=v;W.sel=[];
@@ -179,7 +181,7 @@ async function enter(v){
 function rerenderDocs(v){const idx=activeDocIdx();const car=$('#car');car.innerHTML='';mountDocs(v,true).forEach(w=>car.appendChild(w));const w=car.children[idx];if(w)car.scrollLeft=w.offsetLeft-(car.clientWidth-w.clientWidth)/2;W.sel=[]}
 $('#tabs').addEventListener('click',e=>{const b=e.target.closest('.tab');if(!b)return;const w=$('#car').children[+b.dataset.i];if(w)scrollToDoc(w)});
 function scrollToDoc(w){const car=$('#car');car.scrollTo({left:w.offsetLeft-(car.clientWidth-w.clientWidth)/2,behavior:'smooth'})}
-$('#car').addEventListener('scroll',()=>{const car=$('#car'),c=car.scrollLeft+car.clientWidth/2;let best=0,bd=1e9;[...car.children].forEach((w,i)=>{const d=Math.abs(w.offsetLeft+w.clientWidth/2-c);if(d<bd){bd=d;best=i}});$$('#tabs .tab').forEach((t,i)=>t.classList.toggle('on',i===best))},{passive:true});
+$('#car').addEventListener('scroll',()=>{const car=$('#car'),c=car.scrollLeft+car.clientWidth/2;let best=0,bd=1e9;[...car.children].forEach((w,i)=>{const d=Math.abs(w.offsetLeft+w.clientWidth/2-c);if(d<bd){bd=d;best=i}});if(car.scrollLeft+car.clientWidth>=car.scrollWidth-2&&car.scrollLeft>0)best=car.children.length-1;$$('#tabs .tab').forEach((t,i)=>t.classList.toggle('on',i===best))},{passive:true});
 /* свет: тёмная половина листа */
 $('#car').addEventListener('click',e=>{const sh=e.target.closest('.shade');if(!sh)return;e.stopPropagation();
   /* в сверке касание тёмной части и двигает лист к свету, и сразу выбирает поле под пальцем */

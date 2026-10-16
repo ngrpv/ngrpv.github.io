@@ -12,7 +12,9 @@ const foundCount=()=>END_ORDER.filter(id=>archive()[id]).length;
 function initTitle(){
   const sv=store.get('save');
   const c=$('#b-cont');if(sv&&sv.v===2&&sv.day&&sv.run){c.hidden=false;c.textContent=`Продолжить: день ${sv.day} из 12`}else c.hidden=true;
-  const fc=foundCount();$('#b-arch').textContent=`Архив газет · ${fc} из ${END_ORDER.length}`;
+  const fc=foundCount();$('#b-arch').textContent=`Архив · ${fc}/${END_ORDER.length}`;
+  const dr=dailyResult();$('#b-daily').textContent='Смена дня · '+dailyLabel(dailyKey())+(dr&&dr.final?' ✓':'');
+  const ac=achDone();$('#b-ach').textContent=`Знаки · ${ACH.filter(a=>ac[a.id]).length}/${ACH.length}`;
   SND.muted=!!store.get('muted');$('#b-mute').textContent='Звук: '+(SND.muted?'выкл.':'вкл.');
   show('s-title');
 }
@@ -20,19 +22,26 @@ $('#b-mute').onclick=()=>{SND.muted=!SND.muted;store.set('muted',SND.muted);$('#
 $('#b-new').onclick=()=>openRoles();
 $('#b-cont').onclick=()=>{const sv=store.get('save');if(!sv||!sv.run){initTitle();return}S=clone(sv);startDay()};
 $('#b-arch').onclick=()=>openArchive('s-title');
+$('#b-ach').onclick=()=>openAchievements();
 $('#b-restart').onclick=()=>{store.del('save');DAYSTART=null;initTitle()};
 $('#b-replay').onclick=()=>{if(!DAYSTART)return;S=clone(DAYSTART);startDay()};
 $('#b-endarch').onclick=()=>openArchive('s-end');
 
 /* --- выбор персонажа --- */
 function openRoles(){
-  $('#roles').innerHTML=`<h2 class="pick-h">Кем вы устраиваетесь?</h2><p class="pick-sub">Анкета соискателя, графа 7 «Кем вы себя видите через пять лет»</p>`+Object.keys(ROLES).map(k=>{const R=ROLES[k];return `<button class="rolecard" data-role="${k}">
+  $('#roles').innerHTML=`<h2 class="pick-h">Кем вы устраиваетесь?</h2><p class="pick-sub">Анкета соискателя, графа 7 «Кем вы себя видите через пять лет»</p>`+diffBar()+Object.keys(ROLES).map(k=>{const R=ROLES[k];return `<button class="rolecard" data-role="${k}">
     <span class="rc-face">${faceSVG(R.face,'neutral')}</span>
     <span class="rc-body"><b>${R.t}</b><span class="rc-d">${R.d}</span>
-    ${R.plus.map(t=>`<span class="rc-p">+ ${t}</span>`).join('')}${R.minus.map(t=>`<span class="rc-m">− ${t}</span>`).join('')}</span></button>`}).join('');
+    ${R.plus.map(t=>`<span class="rc-p">+ ${freeErrText(t,R)}</span>`).join('')}${R.minus.map(t=>`<span class="rc-m">− ${t}</span>`).join('')}</span></button>`}).join('');
   show('s-role');$('#roles').scrollTop=0;
 }
-$('#roles').addEventListener('click',e=>{const b=e.target.closest('[data-role]');if(!b)return;S=freshState(b.dataset.role);setupRun();SND.play('thump');openContract()});
+const freeErrText=(t,R)=>/ошибк\S* в день без штрафа/.test(t)?`${Math.max(1,R.freeErr+DIFFS[pickedDiff()].free)} ${plural(Math.max(1,R.freeErr+DIFFS[pickedDiff()].free),'ошибка','ошибки','ошибок')} в день без штрафа`:t;
+function pickedDiff(){const d=store.get('diff');return DIFFS[d]?d:'normal'}
+function diffBar(){const cur=pickedDiff();return `<div class="diffbar" role="group" aria-label="Сложность"><span class="lbl">Сложность</span>${DIFF_ORDER.map(k=>`<button data-diff="${k}" aria-pressed="${k===cur}">${DIFFS[k].t}</button>`).join('')}<small id="diff-d">${DIFFS[cur].d}</small></div>`}
+$('#roles').addEventListener('click',e=>{
+  const d=e.target.closest('[data-diff]');
+  if(d){store.set('diff',d.dataset.diff);SND.play('tick');openRoles();return}
+  const b=e.target.closest('[data-role]');if(!b)return;S=freshState(b.dataset.role,pickedDiff());setupRun();SND.play('thump');openContract()});
 $('#b-roleback').onclick=()=>initTitle();
 
 /* --- архив газет --- */
@@ -47,6 +56,7 @@ function openArchive(back){
 $('#b-archback').onclick=()=>{if(archBack==='s-end')show('s-end');else initTitle()};
 
 /* --- договор и подпись --- */
+const ERR_WORDS={1:'одной',2:'двух',3:'трёх',4:'четырёх',5:'пяти'};
 let pad2=null;
 function openContract(){
   const R=role();
@@ -54,7 +64,7 @@ function openContract(){
   $('#contract').innerHTML=`<div class="lh">${emblem()}<div><div class="lh-t">МФЦ «Мои справки»<br>г. Верхнеберёзовска</div><div class="lh-n">${longDate(dayDate(0))}</div></div></div>
   <h2>Трудовой договор № 7/26</h2><p class="subj">со специалистом окна №7 (${R.t.toLowerCase()})</p>
   <p>1. Работник обязуется принимать граждан строго по регламенту, который ежедневно уточняется распоряжениями руководства.</p>
-  <p>2. Оплата труда: оклад <b>${R.salary} ₽</b> в день плюс <b>${PIECE} ₽</b> за каждое рассмотренное заявление. Ошибки сверх ${R.freeErr===4?'четырёх':'двух'} в день — штраф 300 ₽.</p>
+  <p>2. Оплата труда: оклад <b>${R.salary} ₽</b> в день плюс <b>${PIECE} ₽</b> за каждое рассмотренное заявление. Ошибки сверх ${ERR_WORDS[Math.max(1,R.freeErr+diff().free)]} в день — штраф ${diff().fine} ₽.</p>
   <p>3. Работник не принимает подарков, конвертов, пирожков и иных форм благодарности, кроме устной.</p>
   <p>4. Работник улыбается в соответствии с приказом №12 «Об улыбке», но без фанатизма.</p>
   ${S.role==='nephew'?'<p>5. Рекомендация: П. П. Ступин (дядя). Родство в отделе кадров не выявлено.</p>':S.role==='veteran'?'<p>5. Стаж: 30 лет. Предыдущие места работы: «Мои документы», «Мои бумаги», «Моё окно», «Окно».</p>':''}
@@ -90,7 +100,7 @@ function emblem(){return `<svg viewBox="0 0 60 60" aria-hidden="true"><circle cx
 function setDayCtx(){
   const day=S.day;let ev=S.run.events[day]||null;
   S.run.arcs.forEach(id=>{const e=ARCS[id].event&&ARCS[id].event(day,S.arcs[id]);if(e)ev=e});
-  G={today:dayDate(day),tariff:tariffFor(day),plan:PLAN[day],event:ev,suspend:[],fineMul:day===12?2:1,freeErr:role().freeErr,season:seasonFor(day)};
+  G={today:dayDate(day),tariff:tariffFor(day),plan:PLAN[day]+(day>=3?diff().plan:0),event:ev,suspend:[],fineMul:day===12?2:1,freeErr:Math.max(1,role().freeErr+diff().free),season:seasonFor(day)};
   if(ev==='gosu'){G.plan+=2;G.suspend=['R_GOSU']}
   if(ev==='noqueue')G.plan*=2;
   if(ev==='agents')G.plan+=2;

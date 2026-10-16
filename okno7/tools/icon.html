@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<!-- Исходник иконки (apple-touch-icon.png 180×180 и favicon.png 64×64). Размер задаётся в адресе: icon.html?s=180 -->
+<link rel="stylesheet" href="../css/fonts.css">
+<style>
+html,body{margin:0;overflow:hidden}
+body{background:#253d34}
+#i{position:relative;width:var(--s);height:var(--s);background:#253d34}
+.t{position:absolute;left:14%;right:14%;top:12%;bottom:12%;background:#fbf8f0;border-radius:calc(var(--s)*.06);transform:rotate(-5deg);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 calc(var(--s)*.03) 0 rgba(0,0,0,.35)}
+.t b{font:400 calc(var(--s)*.34)/1 "Stalinist One",sans-serif;color:#b4222f;letter-spacing:-.04em}
+.t i{font:700 calc(var(--s)*.1)/1 "PT Sans Narrow",sans-serif;font-style:normal;letter-spacing:.12em;color:#25242b;margin-top:calc(var(--s)*.05)}
+</style></head><body>
+<div id="i"><div class="t"><b>№7</b><i>ОКНО</i></div></div>
+<script>const s=new URLSearchParams(location.search).get('s')||'180';document.documentElement.style.setProperty('--s',s+'px')</script>
+</body></html>

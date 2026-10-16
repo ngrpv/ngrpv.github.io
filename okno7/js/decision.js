@@ -49,7 +49,7 @@ function missStamp(accept,pt,docEl){
 /* --- решение --- */
 function errState(err){
   W.errors++;S.tot.errors++;let fine=0;
-  if(W.errors>G.freeErr){fine=300*G.fineMul;W.fines+=fine}
+  if(W.errors>G.freeErr){fine=diff().fine*G.fineMul;W.fines+=fine}
   S.loyalty-=W.errors>G.freeErr?(G.fineMul>1?8:4):2;
   return{err,fine,n:W.errors};
 }
@@ -76,6 +76,9 @@ function judge(v,accept,reason){
   else if(!accept&&viol.length&&!v.confessed&&!v.named&&chance(.15))S.complaints+=3;
   W.processed++;S.tot.processed++;
   const error=!correct&&!covered;
+  const st=S.stats||(S.stats=newStats());st.seen++;
+  if(error){st.wrong++;st.streak=0;if(viol.length)st.miss[viol[0]]=(st.miss[viol[0]]||0)+1;else st.fals=(st.fals||0)+1}
+  else{st.ok++;st.streak++;if(st.streak>st.best)st.best=st.streak}
   N.forEach(n=>n&&W.notes.push(n));
   return{correct,err,covered,error,slip:error?errState(err):null};
 }
@@ -139,8 +142,8 @@ $('#env').onclick=()=>{
 };
 function bribeState(v){
   const b=v.bribe;v.bribeTaken=true;
-  if(b.kind==='food'){W.pirozhki=true;S.suspicion+=3}
-  else{W.bribes+=b.amount;S.tot.bribes++;S.tot.bribeSum+=b.amount;S.suspicion+=b.susp!=null?b.susp:10+Math.round(b.amount/250);S.conscience-=5}
+  if(b.kind==='food'){W.pirozhki=true;S.suspicion+=3;(S.stats||(S.stats=newStats())).pies++}
+  else{W.bribes+=b.amount;S.tot.bribes++;S.tot.bribeSum+=b.amount;S.suspicion+=Math.round((b.susp!=null?b.susp:10+Math.round(b.amount/250))*diff().sus);S.conscience-=5}
   if(v.arc&&ARCS[v.arc].onBribe)ARCS[v.arc].onBribe(v,S.arcs[v.arc],W.notes);
 }
 function takeBribe(v){

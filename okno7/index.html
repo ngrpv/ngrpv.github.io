@@ -10,6 +10,19 @@
 <meta name="apple-mobile-web-app-title" content="Следующий!">
 <meta name="theme-color" content="#253d34">
 <meta name="format-detection" content="telephone=no">
+<meta name="description" content="Браузерная игра-сатира: двенадцать смен в окне №7 МФЦ. Сверяйте документы, ставьте печати, не берите конверты. Регламент меняется каждое утро.">
+<link rel="icon" type="image/png" href="apple-touch-icon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Следующий!">
+<meta property="og:title" content="Следующий! — игра про окно №7">
+<meta property="og:description" content="Двенадцать смен в МФЦ: печати, подделки, конверты и пирожки. Регламент меняется каждое утро.">
+<meta property="og:url" content="https://ngrpv.github.io/okno7/">
+<meta property="og:image" content="https://ngrpv.github.io/okno7/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="ru_RU">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="css/fonts.css">
 <link rel="stylesheet" href="css/style.css">
 </head>
@@ -31,8 +44,9 @@
     <div class="t-buttons">
       <button class="btn primary" id="b-new">Устроиться на работу</button>
       <button class="btn" id="b-cont" hidden>Продолжить</button>
-      <button class="btn" id="b-arch">Архив газет</button>
-      <button class="btn ghost" id="b-mute">Звук: вкл.</button>
+      <button class="btn" id="b-daily">Смена дня</button>
+      <div class="t-row"><button class="btn" id="b-arch">Архив газет</button><button class="btn" id="b-ach">Знаки отличия</button></div>
+      <div class="t-row"><button class="btn ghost" id="b-help">Как играть</button><button class="btn ghost" id="b-mute">Звук: вкл.</button></div>
     </div>
     <p class="t-foot">Сатира. Все совпадения с реальными учреждениями неслучайны, но персонажи вымышлены.</p>
   </section>
@@ -100,14 +114,14 @@
     </div>
     <div class="actions">
       <div class="tools">
-        <button class="tool" id="b-book" aria-label="Регламент"></button>
-        <button class="tool" id="b-insp" aria-pressed="false" aria-label="Режим сверки"></button>
+        <button class="tool" id="b-book" aria-label="Регламент" aria-keyshortcuts="B"></button>
+        <button class="tool" id="b-insp" aria-pressed="false" aria-label="Режим сверки" aria-keyshortcuts="S"></button>
         <button class="tool" id="b-lens" hidden aria-pressed="false" aria-label="Осмотр"></button>
-        <button class="tool" id="b-phone" aria-label="Телефон"></button>
+        <button class="tool" id="b-phone" aria-label="Телефон" aria-keyshortcuts="T"></button>
       </div>
       <div class="stamps" id="stamps">
-        <button class="stampbtn" id="b-ok" aria-label="Принято"></button>
-        <button class="stampbtn" id="b-no" aria-label="Отказано"></button>
+        <button class="stampbtn" id="b-ok" aria-label="Принято" aria-keyshortcuts="Y"></button>
+        <button class="stampbtn" id="b-no" aria-label="Отказано" aria-keyshortcuts="N"></button>
       </div>
       <button class="nextbtn" id="b-next" hidden>Следующий!</button>
       <button class="nextbtn retbtn" id="b-ret" hidden>Вернуть ↑</button>
@@ -123,7 +137,7 @@
   <!-- ENDING -->
   <section class="screen deskbg" id="s-end" hidden>
     <div class="scroll" id="end"></div>
-    <div class="bottombar endbar"><button class="btn primary" id="b-replay" hidden>Переиграть день</button><button class="btn" id="b-restart">Начать заново</button><button class="btn" id="b-endarch">Архив</button></div>
+    <div class="bottombar endbar"><button class="btn primary" id="b-replay" hidden>Переиграть день</button><button class="btn" id="b-restart">Начать заново</button><button class="btn" id="b-share" hidden>Поделиться</button><button class="btn" id="b-endarch">Архив</button></div>
   </section>
 
   <div class="scrim" id="scrim" hidden></div>
@@ -170,7 +184,11 @@
 <script src="js/lens.js"></script>
 <script src="js/decision.js"></script>
 <script src="js/evening.js"></script>
+<script src="js/achievements.js"></script>
+<script src="js/help.js"></script>
+<script src="js/daily.js"></script>
 <script src="js/endings.js"></script>
+<script src="js/keys.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

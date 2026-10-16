@@ -1,0 +1,18 @@
+name: okno7 tests
+
+on:
+  push:
+    paths: ['okno7/**', '.github/workflows/okno7-tests.yml']
+  pull_request:
+    paths: ['okno7/**', '.github/workflows/okno7-tests.yml']
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Тесты игры (структура, данные, баланс, «смена дня»)
+        run: node okno7/tests/run.js

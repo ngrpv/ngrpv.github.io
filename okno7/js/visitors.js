@@ -3,6 +3,8 @@
    ГЕНЕРАЦИЯ ПОСЕТИТЕЛЕЙ
    ========================================================= */
 let VID=0;
+/* в «смене дня» посетитель зависит только от даты, дня, номера в очереди и порядка вызова внутри него */
+function visitorSeed(){if(S&&S.daily&&W){W.vc=(W.vc||0)+1;return hash(S.daily.seed,S.day*100+W.idx,W.vc)}return (Math.random()*1e9)|0}
 const ruTel=()=>`+7 9${ri(10,99)} ${ri(100,999)}-${pad(ri(0,99))}-${pad(ri(0,99))}`;
 const foreignTel=()=>`${pick(FOREIGN_TEL)} ${ri(10,99)} ${ri(100,999)}-${ri(100,999)}`;
 const snilsNum=()=>`${ri(100,999)}-${ri(100,999)}-${ri(100,999)} ${pad(ri(0,99))}`;
@@ -27,13 +29,13 @@ function buildDocs(v){
 }
 function pickFlaws(opt){
   if(opt.flaws)return opt.flaws;const flaws=[];const act=activeIds().filter(id=>!(opt.named&&NAMED_SKIP.includes(id)));
-  if(act.length&&chance(opt.pFlaw!=null?opt.pFlaw:.38+S.day*.025)){const w={};act.forEach(id=>{w[id]=S.run.rules[id]===S.day?3:1});flaws.push(wpick(w));
-    if(S.day>=8&&chance(.2)){const id2=wpick(w);if(id2!==flaws[0])flaws.push(id2)}}
+  if(act.length&&chance(opt.pFlaw!=null?opt.pFlaw:.38+S.day*.025+diff().flaw)){const w={};act.forEach(id=>{w[id]=S.run.rules[id]===S.day?3:1});flaws.push(wpick(w));
+    if(S.day>=diff().dbl[0]&&chance(diff().dbl[1])){const id2=wpick(w);if(id2!==flaws[0])flaws.push(id2)}}
   return flaws;
 }
 function genVisitor(opt){
   opt=opt||{};
-  const v={id:++VID,seed:(Math.random()*1e9)|0,noted:new Set(),special:opt.special||null,arc:opt.arc||null,role:opt.role||null,named:!!opt.named};
+  const v={id:++VID,seed:visitorSeed(),noted:new Set(),special:opt.special||null,arc:opt.arc||null,role:opt.role||null,named:!!opt.named};
   return withSeed(v.seed,()=>{
     const arch=opt.arch||wpick(archWeights()),A=ARCH[arch];
     const sex=opt.sex||A.sex||(chance(.5)?'m':'f');const age=opt.age||ri(A.age[0],A.age[1]);
