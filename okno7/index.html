@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Следующий!</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Следующий!">
+<meta name="theme-color" content="#253d34">
+<meta name="format-detection" content="telephone=no">
+<link rel="stylesheet" href="css/fonts.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="app">
+  <!-- TITLE -->
+  <section class="screen" id="s-title">
+    <div class="t-kicker">МФЦ «Мои справки» · г. Верхнеберёзовск</div>
+    <h1 class="t-title">Следующий!</h1>
+    <p class="t-sub">Двенадцать смен в окне №7. Регламент меняется каждое утро.</p>
+    <div class="kiosk" aria-hidden="true">
+      <div class="kiosk-body">
+        <div class="kiosk-screen"><b>Выберите услугу</b><span>Справки</span><span>Справки о справках</span><span>Только спросить</span></div>
+        <div class="kiosk-slot"></div>
+      </div>
+      <div class="ticket">МФЦ «МОИ СПРАВКИ»<br>ТАЛОН<div class="tn">А-001</div>Перед вами: 47 чел.<br>Ожидание: ~3 ч 40 мин</div>
+    </div>
+    <div class="t-buttons">
+      <button class="btn primary" id="b-new">Устроиться на работу</button>
+      <button class="btn" id="b-cont" hidden>Продолжить</button>
+      <button class="btn" id="b-arch">Архив газет</button>
+      <button class="btn ghost" id="b-mute">Звук: вкл.</button>
+    </div>
+    <p class="t-foot">Сатира. Все совпадения с реальными учреждениями неслучайны, но персонажи вымышлены.</p>
+  </section>
+
+  <!-- ROLE -->
+  <section class="screen deskbg" id="s-role" hidden>
+    <div class="scroll" id="roles"></div>
+    <div class="bottombar"><button class="btn" id="b-roleback">Назад</button></div>
+  </section>
+
+  <!-- ARCHIVE -->
+  <section class="screen deskbg" id="s-arch" hidden>
+    <div class="scroll" id="arch"></div>
+    <div class="bottombar"><button class="btn primary" id="b-archback">Назад</button></div>
+  </section>
+
+  <!-- CONTRACT -->
+  <section class="screen deskbg" id="s-sign" hidden>
+    <div class="scroll">
+      <div class="sheetpaper" id="contract"></div>
+    </div>
+    <div class="bottombar"><button class="btn primary" id="b-signed">Подписать</button></div>
+  </section>
+
+  <!-- BRIEF -->
+  <section class="screen deskbg" id="s-brief" hidden>
+    <div class="scroll" id="brief"></div>
+    <div class="bottombar"><button class="btn primary" id="b-open">Открыть окно</button></div>
+  </section>
+
+  <!-- WORK -->
+  <section class="screen" id="s-work" hidden>
+    <header class="hud">
+      <div class="hud-l"><b id="h-day">День 1</b><span class="hud-date f" data-today id="h-date">пн 19.10</span></div>
+      <div class="hud-clock" id="h-clock">09:00</div>
+      <div class="hud-r"><b id="h-money">0 ₽</b><span id="h-plan">план 0/3</span></div>
+      <div class="meters">
+        <span class="meter" id="m-loy">Начальство<i><u></u></i></span>
+        <span class="meter" id="m-com">Жалобы<i><u></u></i></span>
+        <span class="meter" id="m-sus">ОБЭП<i><u></u></i></span>
+      </div>
+    </header>
+    <div class="scene" id="scene">
+      <div class="led" id="led">А-000 → ОКНО 7</div>
+      <svg class="wclock" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="20" fill="#fbfaf4" stroke="#2b2b2b" stroke-width="3"/><g stroke="#2b2b2b" stroke-width="1.5" id="wticks"></g><line id="hh" x1="22" y1="22" x2="22" y2="12" stroke="#2b2b2b" stroke-width="2.6" stroke-linecap="round"/><line id="mh" x1="22" y1="22" x2="22" y2="7" stroke="#2b2b2b" stroke-width="1.6" stroke-linecap="round"/><circle cx="22" cy="22" r="1.8" fill="#b4222f"/></svg>
+      <div class="notice"><b>Уважаемые граждане!</b>Окно №7 работает с 9:00 до 18:00. Перерыв с 13:00 до 14:00. Технический перерыв — по мере необходимости.</div>
+      <div class="poster" id="poster">Госуслуги — это просто!</div>
+      <div class="queue" id="queue" aria-hidden="true"><span style="left:30%;transform:scale(.8)"></span><span style="left:44%;transform:scale(.9);opacity:.45"></span><span style="left:18%;transform:scale(.7);opacity:.4"></span></div>
+      <div class="blogger" id="blogger" hidden aria-hidden="true"><i></i><span>● REC</span></div>
+      <div class="citizen out-r" id="cit"></div>
+      <div class="glass"><div class="grille"></div><span class="glass-label">ОКНО №7</span></div>
+      <div class="blinds" id="blinds"><span id="blinds-t">Перерыв<br>13:00–14:00</span></div>
+      <div class="counter"></div>
+      <div class="bubble hidden" id="bubble"><p id="bubble-t"></p></div>
+      <button class="askbtn" id="b-ask" hidden>Спросить</button>
+    </div>
+    <div class="desk" id="desk">
+      <div class="tray" id="tray" aria-hidden="true"><span>Лоток для документов</span></div>
+      <div class="retcue" id="retcue" hidden aria-hidden="true">↑ смахните документы в лоток</div>
+      <div class="tabs" id="tabs"></div>
+      <div class="carousel" id="car"></div>
+      <div class="desk-empty" id="desk-empty"></div>
+      <div class="hint" id="hint" hidden><span id="hint-t"></span><button id="hint-x" aria-label="Скрыть подсказку">×</button></div>
+      <button class="envelope" id="env" hidden aria-label="Подношение"></button>
+    </div>
+    <div class="actions">
+      <div class="tools">
+        <button class="tool" id="b-book" aria-label="Регламент"></button>
+        <button class="tool" id="b-insp" aria-pressed="false" aria-label="Режим сверки"></button>
+        <button class="tool" id="b-phone" aria-label="Телефон"></button>
+      </div>
+      <div class="stamps" id="stamps">
+        <button class="stampbtn" id="b-ok" aria-label="Принято"></button>
+        <button class="stampbtn" id="b-no" aria-label="Отказано"></button>
+      </div>
+      <button class="nextbtn" id="b-next" hidden>Следующий!</button>
+      <button class="nextbtn retbtn" id="b-ret" hidden>Вернуть ↑</button>
+    </div>
+  </section>
+
+  <!-- EVENING -->
+  <section class="screen deskbg" id="s-eve" hidden>
+    <div class="scroll" id="eve"></div>
+    <div class="bottombar" id="eve-bar"></div>
+  </section>
+
+  <!-- ENDING -->
+  <section class="screen deskbg" id="s-end" hidden>
+    <div class="scroll" id="end"></div>
+    <div class="bottombar endbar"><button class="btn primary" id="b-replay" hidden>Переиграть день</button><button class="btn" id="b-restart">Начать заново</button><button class="btn" id="b-endarch">Архив</button></div>
+  </section>
+
+  <div class="scrim" id="scrim" hidden></div>
+  <div class="sheet" id="sheet" hidden><div class="sheet-h"><h3 id="sheet-t"></h3><button id="sheet-x">Закрыть</button></div><div class="sheet-b" id="sheet-b"></div></div>
+  <div class="modal" id="modal" hidden></div>
+  <div class="slip" id="slip" hidden></div>
+  <div class="toast" id="toast" hidden></div>
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <filter id="ink" x="-8%" y="-8%" width="116%" height="116%">
+      <feTurbulence type="fractalNoise" baseFrequency="1.2" numOctaves="2" seed="4" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -1.9 0 0 0 1.55" result="m"/>
+      <feComposite in="SourceGraphic" in2="m" operator="in" result="c"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="9" result="w"/>
+      <feDisplacementMap in="c" in2="w" scale="3" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <filter id="inkH" x="-8%" y="-8%" width="116%" height="116%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" seed="2" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -1.6 0 0 0 1.5" result="m"/>
+      <feComposite in="SourceGraphic" in2="m" operator="in" result="c"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="5" result="w"/>
+      <feDisplacementMap in="c" in2="w" scale="4" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
+
+<script src="js/util.js"></script>
+<script src="js/sound.js"></script>
+<script src="js/graphics.js"></script>
+<script src="js/data-people.js"></script>
+<script src="js/data-rules.js"></script>
+<script src="js/data-days.js"></script>
+<script src="js/state.js"></script>
+<script src="js/arcs.js"></script>
+<script src="js/visitors.js"></script>
+<script src="js/docs.js"></script>
+<script src="js/screens.js"></script>
+<script src="js/shift.js"></script>
+<script src="js/inspect.js"></script>
+<script src="js/decision.js"></script>
+<script src="js/evening.js"></script>
+<script src="js/endings.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
