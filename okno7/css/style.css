@@ -490,3 +490,35 @@ input:focus-visible+.ck{outline:3px solid #ffd400}
 
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 @media (max-height:640px){.scene{height:clamp(170px,31%,240px)}.hud{padding:4px 10px}.tool{min-height:46px}}
+
+/* ---------- ДОБАВКИ: титул, сложность, справка, знаки отличия, разбор ---------- */
+.t-row{display:flex;gap:10px}
+.t-row .btn{flex:1;padding-inline:8px;font-size:15px}
+.t-row .btn.ghost{padding-block:8px}
+.diffbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 12px;padding:8px 10px;background:var(--paper-2);border-radius:8px;box-shadow:0 2px 0 rgba(0,0,0,.2)}
+.diffbar .lbl{flex:1 0 100%;font:700 11px var(--f-narrow);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
+.diffbar button{flex:1;border:2px solid var(--ink);border-radius:6px;padding:8px 4px;background:transparent;font:700 14px var(--f-ui);color:var(--ink)}
+.diffbar button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.diffbar small{flex:1 0 100%;font:13px/1.35 var(--f-ui);color:var(--ink-soft)}
+.helpsteps{margin:0 0 10px;padding-left:20px;font:14px/1.45 var(--f-ui)}
+.helpsteps li{margin-bottom:4px}
+.keytable{width:100%;border-collapse:collapse;margin-top:6px;font:13px/1.35 var(--f-ui)}
+.keytable caption{text-align:left;font:700 11px var(--f-narrow);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);padding-bottom:4px}
+.keytable th{text-align:left;white-space:nowrap;padding:3px 10px 3px 0;font-family:var(--f-mono);font-weight:700;vertical-align:top}
+.keytable td{padding:3px 0;color:var(--ink-soft)}
+.modal h3+p{margin-top:0}
+.achlist{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.achlist li{padding:8px 10px;border-radius:6px;background:var(--paper-2);opacity:.6}
+.achlist li.got{opacity:1;background:#ffe970;box-shadow:0 2px 0 rgba(0,0,0,.18)}
+.achlist b{display:block;font:700 14px var(--f-ui)}
+.achlist span{display:block;font:13px/1.35 var(--f-ui);color:var(--ink-soft)}
+.review,.achnew{margin:14px 6px 0;padding:12px 14px;background-color:var(--paper);background-image:var(--noise);box-shadow:0 6px 12px rgba(30,35,35,.25);font:14px/1.45 var(--f-ui)}
+.review>b,.achnew>b{display:block;font:700 12px var(--f-narrow);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px}
+.review p{margin:8px 0 0}
+.achnew{background:#ffe970}
+.achnew span{display:block;font-weight:700;margin-top:4px}
+.achnew small{display:block;font-weight:400;color:var(--ink-soft)}
+.foundline small{font-weight:400}
+@supports (height:100dvh){html,body{height:100dvh}}
+.review .stats{display:grid;grid-template-columns:1fr auto;gap:2px 10px;font:13px var(--f-mono);font-variant-numeric:tabular-nums}
+.review .stats b{text-align:right}

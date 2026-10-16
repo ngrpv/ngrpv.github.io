@@ -117,7 +117,8 @@ function openBook(){
   openSheet('Регламент окна №7',tabs+`<div class="book-sub">ред. распоряжения № ${S.day} · сегодня <span class="f" data-today>${dd(G.today)}</span></div>
   <ol class="rules">${act.map((id,i)=>`<li data-rule="${id}" class="${S.run.rules[id]===S.day&&S.day>1?'new':''}"><span class="rn">п.${i+1}</span><span>${ruleText(id)}</span></li>`).join('')}</ol>
   ${G.suspend.length?`<div class="book-note" style="margin-bottom:8px">Сегодня не применяется: ${G.suspend.map(id=>'«'+ruleText(id)+'»').join(', ')}</div>`:''}
-  <div class="book-note">${W.insp?'Режим сверки: нажмите пункт, а затем поле документа на столе. Пункты об обязательных документах проверяются одним нажатием.':'Включите «Сверку», чтобы сопоставлять пункты регламента с полями документов.'}<br>Перерыв: 13:00–14:00. Штраф за ошибки сверх ${G.freeErr} в день: ${300*G.fineMul} ₽.</div>`);
+  <div class="book-note">${W.insp?'Режим сверки: нажмите пункт, а затем поле документа на столе. Пункты об обязательных документах проверяются одним нажатием.':'Включите «Сверку», чтобы сопоставлять пункты регламента с полями документов.'}<br>Перерыв: 13:00–14:00. Штраф за ошибки сверх ${G.freeErr} в день: ${diff().fine*G.fineMul} ₽.</div>
+  <button class="linkbtn" data-help>Как играть и горячие клавиши</button>`);
 };
 function openReasons(){
   const act=activeIds();

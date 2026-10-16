@@ -6,7 +6,16 @@ let S=null,DAYSTART=null;
 const clone=o=>JSON.parse(JSON.stringify(o));
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const role=()=>ROLES[S.role]||ROLES.young;
-function freshState(r){const R=ROLES[r]||ROLES.young;return{v:2,role:r,day:1,money:1500,loyalty:R.loyalty,complaints:10,suspicion:R.susp,conscience:0,flags:{},loan:0,catGone:false,catSkip:0,catSick:!!R.sickCat,mamaSkip:0,mamaSick:false,ticket:40,sig:null,tot:{processed:0,errors:0,bribes:0,bribeSum:0},run:null,arcs:{}}}
+/* сложность: бесплатные ошибки, размер штрафа, частота подделок, план, подозрительность ОБЭП, премии */
+const DIFFS={
+  easy:{t:'Новичок',d:'На одну ошибку больше без штрафа, подделок меньше.',free:1,fine:300,flaw:-.08,dbl:[10,.1],plan:0,sus:1,bonus:350,wk:6},
+  normal:{t:'Обычная',d:'Как задумано.',free:0,fine:300,flaw:0,dbl:[8,.2],plan:0,sus:1,bonus:250,wk:4},
+  hard:{t:'Строгая',d:'На одну бесплатную ошибку меньше, штраф 450 ₽, подделок больше, план выше на одно заявление, ОБЭП внимательнее.',free:-1,fine:450,flaw:.08,dbl:[6,.3],plan:1,sus:1.25,bonus:250,wk:3}
+};
+const DIFF_ORDER=['easy','normal','hard'];
+const diff=()=>DIFFS[S&&S.diff]||DIFFS.normal;
+const newStats=()=>({seen:0,ok:0,wrong:0,fals:0,miss:{},streak:0,best:0,flawless:0,pies:0,hist:[]});
+function freshState(r,d){const R=ROLES[r]||ROLES.young;return{v:2,role:r,diff:DIFFS[d]?d:'normal',stats:newStats(),day:1,money:1500,loyalty:R.loyalty,complaints:10,suspicion:R.susp,conscience:0,flags:{},loan:0,catGone:false,catSkip:0,catSick:!!R.sickCat,mamaSkip:0,mamaSick:false,ticket:40,sig:null,tot:{processed:0,errors:0,bribes:0,bribeSum:0},run:null,arcs:{}}}
 function save(){S.savedAt=Date.now();store.set('save',S)}
 
 /* --- партия: какие правила, сюжеты и события выпали --- */

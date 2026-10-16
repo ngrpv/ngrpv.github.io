@@ -12,6 +12,9 @@ const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const pad=n=>String(n).padStart(2,'0');
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+/* хеш из нескольких чисел: для воспроизводимых «смены дня» и посетителей */
+const hash=(...a)=>{let h=2166136261;for(const x of a){h^=x|0;h=Math.imul(h,16777619)}return h>>>0};
+const REDUCED=typeof matchMedia!=='undefined'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
 function withSeed(seed,fn){const old=rnd;rnd=mulberry32(seed);try{return fn()}finally{rnd=old}}
 function wpick(obj){let t=0;for(const k in obj)t+=obj[k];let x=rnd()*t;for(const k in obj){x-=obj[k];if(x<=0)return k}return Object.keys(obj)[0]}
 const nf=n=>Math.abs(Math.round(n)).toLocaleString('ru-RU');
@@ -36,7 +39,7 @@ const longDate=d=>`«${d.getDate()}» ${MON[d.getMonth()]} ${d.getFullYear()} г
 /* хранилище: личный документ игрока в db артефакта (data/users/<id>/okno7), localStorage — запасной слой.
    Пишем только при изменении, по одной записи за раз; при отказе db молча остаёмся на localStorage. */
 const LS={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
-const STORE_KEYS=['save','archive','muted','tutDone'];
+const STORE_KEYS=['save','archive','muted','tutDone','ach','diff','daily'];
 const store={mem:{},ref:null,busy:false,again:false,
   get(k){return this.mem[k]!=null?this.mem[k]:null},
   set(k,v){this.mem[k]=v==null?null:JSON.parse(JSON.stringify(v));LS.set('okno7.'+k,this.mem[k]);this.flush()},

@@ -54,10 +54,13 @@ function calcEvening(){
   E={salary:R.salary,piece:W.processed*PIECE,fines:-W.fines,bribes:W.bribes,mortgage:-600,util:day>=5?-230:-200,food:W.pirozhki?0:-250,cat:S.catGone?0:S.catSick?-180:-100,mama:-250,payCat:!S.catGone,payMama:true,
     loan:S.loan>0?-500:0,back:f.lendBack===day?1000:0,dil:(S.run.dilemmas&&S.run.dilemmas[day])||null,dilDone:false};
   E.loyD=W.processed>=G.plan?3:-10;
+  /* честный заработок: премия за день без ошибок и за первую неделю */
+  E.quality=W.errors===0&&W.processed>=G.plan?diff().bonus:0;
+  E.week=day===6&&S.tot.errors<=diff().wk?1500:0;
   return E;
 }
 function evening(){calcEvening();show('s-eve');renderEve(W.processed>=G.plan)}
-function eveTotal(){return E.salary+E.piece+E.fines+E.bribes+E.mortgage+E.util+E.food+E.loan+E.back+(E.payCat?E.cat:0)+(E.payMama?E.mama:0)}
+function eveTotal(){return E.salary+E.piece+E.fines+E.bribes+E.quality+E.week+E.mortgage+E.util+E.food+E.loan+E.back+(E.payCat?E.cat:0)+(E.payMama?E.mama:0)}
 function eveNotes(planOk){const n=[...(planOk?['План выполнен. Начальство кивнуло.']:[`План не выполнен (${W.processed} из ${G.plan}). Начальство вздохнуло.`]),...W.notes];
   if(S.catSkip>=1&&!S.catGone)n.push('Барсик смотрит на вас с укором. Миска пустая со вчера.');
   if(E.back)n.push('Коллега из окна №6 вернул долг. Удивительно.');
@@ -79,7 +82,7 @@ function renderEve(planOk){
   <div class="sheetpaper">
     <div class="lh">${emblem()}<div><div class="lh-t">Расчётный листок<br>специалист окна №7</div><div class="lh-n">День ${day} · ${dd(G.today)}</div></div></div>
     <table class="ledger" style="margin-top:10px">
-      ${row('Оклад',E.salary)}${row(`Сдельно: ${W.processed} × ${PIECE} ₽`,E.piece)}${E.fines?row(`Штрафы (${W.errors} ош.)`,E.fines):''}${E.bribes?row('«Благодарности»',E.bribes):''}${E.back?row('Вернули долг',E.back):''}
+      ${row('Оклад',E.salary)}${row(`Сдельно: ${W.processed} × ${PIECE} ₽`,E.piece)}${E.fines?row(`Штрафы (${W.errors} ош.)`,E.fines):''}${E.bribes?row('«Благодарности»',E.bribes):''}${E.quality?row('Премия «Безупречное окно»',E.quality):''}${E.week?row('Премия по итогам первой недели',E.week):''}${E.back?row('Вернули долг',E.back):''}
       ${row('Ипотека (21% годовых)',E.mortgage)}${row(day>=5?'Коммуналка (после индексации)':'Коммуналка',E.util)}${row(W.pirozhki?'Ужин: пирожки':'Продукты',E.food)}
       <tr id="loanrow"${E.loan?'':' hidden'}><td>Рассрочка за операцию мамы</td><td class="neg">−500 ₽</td></tr>
       ${S.catGone?'':ck('c-cat',S.catSick?'Лечебный корм для Барсика':'Корм для Барсика',E.cat,E.payCat)}
@@ -114,11 +117,12 @@ function settleEvening(){
   if(E.loan&&S.loan>0)S.loan--;
   if(!S.catGone){if(E.payCat)S.catSkip=0;else{S.catSkip++;if(S.catSkip>=(S.catSick?1:2)){S.catGone=true;S.conscience-=5}}}
   if(E.payMama)S.mamaSkip=0;else{S.mamaSkip++;S.conscience-=2;if(S.mamaSkip>=2&&!S.mamaSick){S.mamaSick=true;S.conscience-=8}}
+  const hs=S.stats||(S.stats=newStats());hs.hist.push({d:S.day,e:W.errors,n:W.processed,p:G.plan});if(E.quality)hs.flawless++;
   S.complaints=clamp(S.complaints-4,0,150);if(!W.bribes)S.suspicion=clamp(S.suspicion-6,0,150);
   S.loyalty=clamp(S.loyalty,-50,100);
 }
 function applyEvening(fly){
-  settleEvening();
+  settleEvening();announceAch(checkAch('day'));
   if(fly){ending('fly');return}
   const end=checkEnd();if(end){ending(end);return}
   if(S.day>=12){ending(finalEnding());return}
