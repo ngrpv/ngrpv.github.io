@@ -64,9 +64,9 @@ function openWindow(){
   if(!$('#wticks').childElementCount){let t='';for(let i=0;i<12;i++){const a=i*30*Math.PI/180;t+=`<line x1="${22+16*Math.sin(a)}" y1="${22-16*Math.cos(a)}" x2="${22+18*Math.sin(a)}" y2="${22-18*Math.cos(a)}"/>`}$('#wticks').innerHTML=t}
   $('#cit').className='citizen out-r';$('#cit').innerHTML='';
   $('#car').innerHTML='';$('#tabs').innerHTML='';$('#env').hidden=true;bubble(null);hideAsk();
-  setInsp(false);setEmpty(true);showReturn(false);
+  setInsp(false);setLens(null,true);setEmpty(true);showReturn(false);
   $('#blinds').classList.remove('down');
-  $('#scene').classList.toggle('dark',G.event==='dark');$('#blogger').hidden=G.event!=='blogger';
+  $('#scene').classList.toggle('dark',G.event==='dark');$('#scene').dataset.w=G.season?G.season.w:'sun';$('#blogger').hidden=G.event!=='blogger';
   led(`А-${pad3(S.ticket)} → ОКНО 7`);
   hud();showNext(true);
   clearInterval(clockI);clockI=setInterval(tickClock,250);
@@ -88,7 +88,7 @@ function hud(){
   if(!W)return;const t=Math.floor(W.time),h=Math.floor(t/60),m=t%60;
   $('#h-clock').textContent=`${pad(h)}:${pad(m)}`;
   $('#hh').setAttribute('transform',`rotate(${(h%12+m/60)*30} 22 22)`);$('#mh').setAttribute('transform',`rotate(${m*6} 22 22)`);
-  $('#h-day').textContent=`День ${S.day}`;$('#h-date').textContent=`${WD[G.today.getDay()]} ${pad(G.today.getDate())}.${pad(G.today.getMonth()+1)}`;
+  $('#h-day').textContent=`День ${S.day}`;$('#h-date').textContent=`${WD[G.today.getDay()]} ${pad(G.today.getDate())}.${pad(G.today.getMonth()+1)}${G.season?' · '+G.season.weather.s:''}`;
   $('#h-money').textContent=money(S.money+W.bribes);$('#h-plan').textContent=`план ${W.processed}/${G.plan}`;
   const m1=(id,val,bad)=>{const e=$(id);e.querySelector('u').style.width=clamp(val,0,100)+'%';e.classList.toggle('bad',bad)};
   renderQueue();

@@ -16,7 +16,7 @@
 - `css/style.css` — стили, `css/fonts.css` — подключение шрифтов
 - `fonts/` — шрифты woff2 (кириллица и латиница), лицензия SIL OFL, источник Google Fonts
 - `js/` — игра. Это обычные скрипты, они делят одну глобальную область, **порядок подключения в `index.html` важен**:
-  `util` → `sound` → `graphics` → `data-*` → `state` → `arcs` → `visitors` → `docs` → `screens` → `shift` → `inspect` → `decision` → `evening` → `endings` → `main`
+  `util` → `sound` → `graphics` → `data-*` (people, rules, days, season) → `state` → `arcs` → `arc-razan` → `visitors` → `docs` → `screens` → `shift` → `inspect` → `lens` → `decision` → `evening` → `endings` → `main`
 - `balance-sim.js` — автопрогон кампании разными стратегиями без интерфейса: `node balance-sim.js 200`
 
 Прогресс хранится в `localStorage` под префиксом `okno7.`.

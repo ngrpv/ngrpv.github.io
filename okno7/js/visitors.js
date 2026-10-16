@@ -35,7 +35,7 @@ function genVisitor(opt){
   opt=opt||{};
   const v={id:++VID,seed:(Math.random()*1e9)|0,noted:new Set(),special:opt.special||null,arc:opt.arc||null,role:opt.role||null,named:!!opt.named};
   return withSeed(v.seed,()=>{
-    const arch=opt.arch||wpick(ARCH_W),A=ARCH[arch];
+    const arch=opt.arch||wpick(archWeights()),A=ARCH[arch];
     const sex=opt.sex||A.sex||(chance(.5)?'m':'f');const age=opt.age||ri(A.age[0],A.age[1]);
     v.arch=arch;v.sex=sex;v.age=age;
     let s=pick(SURN);if(!opt.named&&isActive('R_SCH')&&chance(.1))s=pick(SURN_SCH);
@@ -57,7 +57,7 @@ function genVisitor(opt){
     if(opt.after)opt.after(v);
     v.viol=activeIds().filter(id=>RULES[id].check(v));
     const L=k=>(A[k]&&A[k].length?A[k]:['Здравствуйте.']);
-    v.lines={intro:sx(opt.intro||pick(L('intro')),sex),plead:A.plead,ok:A.ok,no:A.no};
+    v.lines={intro:sx(opt.intro||seasonIntro(arch)||pick(L('intro')),sex),plead:A.plead,ok:A.ok,no:A.no};
     if(!opt.noBribe&&v.viol.length){const bp={biznes:[.6,'cash',[3000,5000],true],babushka:[.45,'food',[0,0],false],worker:[.25,'cash',[1000,1000],false],student:[.15,'cash',[500,500],false],it:[.1,'cash',[2000,2000],false],courier:[.1,'cash',[500,500],false]}[arch];if(bp&&chance(bp[0]))v.bribe={kind:bp[1],amount:pick(bp[2]),upfront:bp[3],pie:'с капустой'}}
     return v;
   });

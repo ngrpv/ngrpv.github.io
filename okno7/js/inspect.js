@@ -1,6 +1,6 @@
 'use strict';
 /* --- сверка --- */
-function setInsp(on){W&&(W.insp=on);if(on)tut(2);$('#app').classList.toggle('inspect',on);$('#b-insp').setAttribute('aria-pressed',on);if(!on)clearSel()}
+function setInsp(on,keepLens){W&&(W.insp=on);if(on){tut(2);if(!keepLens&&W&&W.lens)setLens(null,true)}$('#app').classList.toggle('inspect',on);$('#b-insp').setAttribute('aria-pressed',on);if(!on)clearSel()}
 $('#b-insp').onclick=()=>{if(!W)return;setInsp(!W.insp);if(W.insp)toast('Сверка: выберите два поля или поле и пункт регламента',null,2200)};
 function clearSel(){$$('.f.sel,.rules li.sel,.citizen.sel').forEach(e=>e.classList.remove('sel'));if(W)W.sel=[]}
 $('#app').addEventListener('click',e=>inspPick(e,e.target));
@@ -91,6 +91,7 @@ $('#b-ask').onclick=async()=>{
 function interrogate(v,rule){
   const r=RULES[rule],roll=rnd();
   if(v.special==='shopper')return{kind:'dodge',line:'Обычный гражданин на такой вопрос пожал бы плечами.',expr:'sly'};
+  if(v.askLine)return{kind:'dodge',line:v.askLine,expr:'neutral'};
   if(v.callWant)return{kind:'dodge',line:pick(v.lines.plead),expr:'angry'};
   if(r&&r.fix&&roll<.45){const line=r.fix(v);if(line){recheck(v);v.noted.delete(rule);return{kind:'fix',line}}}
   if(v.bribe&&!v.bribeShown&&roll<.72)return{kind:'bribe',line:v.arch==='biznes'?'Слушайте, давайте решим вопрос по-взрослому.':'Может, договоримся как-нибудь?'};
@@ -105,8 +106,8 @@ $('#sheet-x').onclick=closeSheet;
 $('#scrim').onclick=()=>{if(!$('#modal').hidden)return;closeSheet()};
 function bookSamples(){const ids=activeIds().filter(id=>RULES[id].forg);const ss=[...new Set(ids.map(id=>RULES[id].sample))];
   if(!ss.length)return '<p class="book-note">Образцов пока нет. Они появятся вместе с распоряжениями о подделках.</p>';
-  const art={stamp:()=>CLINIC_STAMP(),photo:()=>'<span class="smp-photo">'+faceSVG(ROLES.young.face,'neutral')+'</span>',holo:()=>'<span class="smp-holo"><i class="holo-i"></i></span>',font:()=>'<span class="smp-font">ГОСБАНК<br>ЧЕК ПО ОПЕРАЦИИ<br>ИТОГО 350 ₽</span>',qr:()=>'<span class="smp-qr">'+qrSVG(5)+'</span>'};
-  return `<div class="samples">${ss.map(s=>`<div class="sample f" data-sample="${s}"><span class="smp-art">${art[s]()}</span><span class="smp-cap">${SAMPLES[s]}</span></div>`).join('')}</div><div class="book-note">${W.insp?'Режим сверки: нажмите образец, затем то же место в документе.':'Включите «Сверку», чтобы сравнивать документы с образцами.'}</div>`}
+  const art={stamp:()=>CLINIC_STAMP(),photo:()=>'<span class="smp-photo">'+faceSVG(ROLES.young.face,'neutral')+'</span>',holo:()=>'<span class="smp-holo"><i class="holo-i"></i></span>',font:()=>'<span class="smp-font">ГОСБАНК<br>ЧЕК ПО ОПЕРАЦИИ<br>ИТОГО 350 ₽</span>',qr:()=>'<span class="smp-qr">'+qrSVG(5)+'</span>',uv:()=>'<span class="smp-uv">'+UV_MARK+'</span>',micro:()=>CLINIC_STAMP(undefined,false,MICRO_OK)};
+  return `<div class="samples">${ss.map(s=>LENS_SAMPLES.includes(s)?`<div class="sample lens-s"><span class="smp-art">${art[s]()}</span><span class="smp-cap">${SAMPLES[s]}</span></div>`:`<div class="sample f" data-sample="${s}"><span class="smp-art">${art[s]()}</span><span class="smp-cap">${SAMPLES[s]}</span></div>`).join('')}</div><div class="book-note">${W.insp?'Режим сверки: нажмите образец, затем то же место в документе.':'Включите «Сверку», чтобы сравнивать документы с образцами.'}${ss.some(s=>LENS_SAMPLES.includes(s))?' Образцы под УФ и лупой смотрят кнопкой «Осмотр», без сверки.':''}</div>`}
 let bookTab='rules';
 $('#sheet-b').addEventListener('click',e=>{const t=e.target.closest('[data-tab]');if(!t)return;bookTab=t.dataset.tab;openBook()});
 $('#b-book').onclick=()=>{bookTab='rules';openBook()};

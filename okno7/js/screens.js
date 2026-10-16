@@ -90,11 +90,13 @@ function emblem(){return `<svg viewBox="0 0 60 60" aria-hidden="true"><circle cx
 function setDayCtx(){
   const day=S.day;let ev=S.run.events[day]||null;
   S.run.arcs.forEach(id=>{const e=ARCS[id].event&&ARCS[id].event(day,S.arcs[id]);if(e)ev=e});
-  G={today:dayDate(day),tariff:tariffFor(day),plan:PLAN[day],event:ev,suspend:[],fineMul:day===12?2:1,freeErr:role().freeErr};
+  G={today:dayDate(day),tariff:tariffFor(day),plan:PLAN[day],event:ev,suspend:[],fineMul:day===12?2:1,freeErr:role().freeErr,season:seasonFor(day)};
   if(ev==='gosu'){G.plan+=2;G.suspend=['R_GOSU']}
   if(ev==='noqueue')G.plan*=2;
+  if(ev==='agents')G.plan+=2;
   if(ev==='audit')G.fineMul=2;
 }
+function seasonStrip(){const s=G.season;if(!s)return '';const c=s.cal;return `<div class="seasonbar"><span class="sb-k">За окном · ${WD[G.today.getDay()]} ${pad(G.today.getDate())}.${pad(G.today.getMonth()+1)}</span><b>${s.weather.t}</b><span>${s.weather.p}</span>${c?`<b class="sb-cal">${c.t}</b><span>${c.p}</span>`:''}</div>`}
 const newRulesOn=day=>POOL_ORDER.filter(id=>S.run.rules[id]===day&&day>1);
 function directive(day){
   if(day===1)return DIR1;if(day===12)return DIR12;
@@ -109,6 +111,7 @@ function startDay(){
   const D=directive(S.day),newR=newRulesOn(S.day),ev=G.event&&EVENTS[G.event];
   const tariffLine=isActive('R_SUM')||isActive('R_RECEIPT')?`<span>Госпошлина: <b>${rub(G.tariff)}</b>${S.run.params.tariffDay===S.day?' (было 350 ₽)':''}</span>`:'';
   $('#brief').innerHTML=`${NOTES[S.day]?`<div class="sticky">${NOTES[S.day]}</div>`:''}
+  ${seasonStrip()}
   ${ev?`<div class="evcard"><span class="ev-k">Телефонограмма · срочно</span><h3>${ev.t}</h3><p>${ev.p}</p></div>`:''}
   <div class="sheetpaper">
     <div class="lh">${emblem()}<div><div class="lh-t">Министерство цифрового развития, связи и справок<br>МФЦ «Мои справки» г. Верхнеберёзовска</div><div class="lh-n">Исх. № ${S.day*37+104}-ДИР от ${dd(G.today)} · ${WD[G.today.getDay()]}</div></div></div>

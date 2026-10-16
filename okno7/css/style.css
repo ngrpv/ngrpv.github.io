@@ -490,3 +490,35 @@ input:focus-visible+.ck{outline:3px solid #ffd400}
 
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 @media (max-height:640px){.scene{height:clamp(170px,31%,240px)}.hud{padding:4px 10px}.tool{min-height:46px}}
+
+/* ---------- ОСМОТР: УФ И ЛУПА ---------- */
+.tools.four{gap:4px}
+.tools.four .tool{width:46px}
+.uv-wm{position:absolute;left:30%;top:26%;width:40%;aspect-ratio:1;opacity:0;pointer-events:none;color:#e4f7ff;filter:drop-shadow(0 0 6px #7fe3ff);z-index:3;transition:opacity .25s}
+.uv-wm svg{display:block;width:100%;height:100%}
+.lens-uv .uv-wm{opacity:1;color:#d6f4ff;filter:drop-shadow(0 0 3px #4fd6ff) drop-shadow(0 0 9px #4fd6ff)}
+.lens-uv .doc::after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background:rgba(24,12,70,.72);border-radius:inherit;animation:uvon .3s both}
+@keyframes uvon{from{opacity:0}}
+.lens-uv .desk{background-color:#2b2650}
+.smp-uv{position:relative;display:block;width:76px;height:76px;border-radius:8px;background:#2b2650}
+.smp-uv .uv-wm{opacity:1;left:12%;top:12%;width:76%}
+.stamp .micro{font-size:5.4px;font-weight:700;letter-spacing:0;opacity:.85}
+.smp-art .stamp .micro{opacity:1}
+.lens-loupe .zh-stampf{transform:scale(3.2);transform-origin:100% 100%;z-index:5;transition:transform .25s}
+.lens-loupe .zh-stampf svg{background:rgba(255,255,255,.9);border-radius:50%;box-shadow:0 4px 14px rgba(0,0,0,.45);mix-blend-mode:normal}
+.lens-loupe .zh-stampf .micro{opacity:1}
+.lens-s{cursor:default}
+
+/* ---------- ВРЕМЯ ГОДА ---------- */
+.seasonbar{max-width:420px;margin:0 auto 14px;background:#e3eef2;background-image:var(--noise);border-left:6px solid #3d7a9a;padding:9px 12px 10px;box-shadow:0 4px 10px rgba(0,0,0,.2);transform:rotate(.4deg);display:flex;flex-direction:column;gap:2px}
+.seasonbar .sb-k{font:700 10px var(--f-mono);text-transform:uppercase;letter-spacing:.12em;color:#3d7a9a}
+.seasonbar b{font:700 15px var(--f-doc)}
+.seasonbar span:not(.sb-k){font:13px/1.4 var(--f-ui)}
+.seasonbar .sb-cal{margin-top:5px;color:#7a4a1c}
+
+/* ---------- ПРИЛОЖЕНИЯ (Разан Гапиров) ---------- */
+.d-annex{background-color:#fdfcf7;background-image:var(--noise);padding:14px 16px 16px;font:12.5px/1.4 var(--f-mono)}
+.d-annex .an-h{font:700 13px var(--f-doc);text-transform:uppercase;letter-spacing:.1em;text-align:center;margin-bottom:8px}
+.d-annex ul{margin:0;padding-left:16px}
+.d-annex li{margin-bottom:5px}
+.d-annex .an-fine{margin-top:10px;font:italic 7.5px/1.3 var(--f-doc);color:#777}

@@ -123,7 +123,7 @@ function envSVG(kind,amount,pie){if(kind==='food')return `<svg viewBox="0 0 96 6
 async function offerBribe(v){
   const b=v.bribe;if(!b||v.bribeShown)return;v.bribeShown=true;
   const env=$('#env');env.innerHTML=envSVG(b.kind,b.amount,b.pie);env.hidden=false;env.style.animation='none';void env.offsetWidth;env.style.animation='';SND.play('rustle');
-  if(v.arc==='babushka'||v.arc==='deputy')return;
+  if(['babushka','deputy','notary'].includes(v.arc))return;
   const lines=b.shopper?['Это вам. Просто так. Ни на что не намекаю.']:b.kind==='food'?['Возьмите пирожочков. Сама пекла. С капустой.','Это вам, к чаю. Не обижайте бабушку.']:v.arch==='biznes'?['Давайте так. Это за беспокойство.','Я думаю, это решит вопрос.']:['Может, договоримся? Вот, на шоколадку.','Это... за скорость.'];
   await say(pick(lines),'sly',v);
 }
@@ -179,7 +179,7 @@ function closeMisses(){Object.values(W.specials).forEach(sp=>{if(!sp.done&&sp.ar
 async function endShift(){
   if(W.ended)return;W.ended=true;W.running=false;clearInterval(clockI);
   if(ringing){clearInterval(ringing.rep);$('#b-phone').classList.remove('ringing');ringing=null}
-  closeSheet();setInsp(false);hint(null);hideAsk();
+  closeSheet();setInsp(false);setLens(null,true);hint(null);hideAsk();
   if(W.ret)await returnDocs();
   const v=W.v;
   if(v&&!v.done){v.done=true;await say('Как это «закрыто»?! Я с утра стою!','angry',v);await sleep(800);await leave(v,null)}

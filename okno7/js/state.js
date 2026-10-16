@@ -10,7 +10,7 @@ function freshState(r){const R=ROLES[r]||ROLES.young;return{v:2,role:r,day:1,mon
 function save(){S.savedAt=Date.now();store.set('save',S)}
 
 /* --- партия: какие правила, сюжеты и события выпали --- */
-const ARC_W={dubov:1.6,student:1,kuzmin:1,zhanna:1,it:1,babushka:1,deputy:1};
+const ARC_W={dubov:1.6,student:1,kuzmin:1,zhanna:1,it:1,babushka:1,deputy:1,notary:1,razan:1};
 function setupRun(){
   const run={rules:{},params:{banned:pick(SERVICES_ALL),doctor:pick(DOCTORS),tariffDay:0},events:{},news:{},arcs:[]};
   S.run=run;S.arcs={};
@@ -24,7 +24,7 @@ function setupRun(){
   }
   if(run.rules.R_SUM)run.params.tariffDay=ri(Math.max(run.rules.R_SUM+2,7),11);
   /* подделки: 3–4 признака, каждый в свой день, не раньше нужного документа */
-  const fk=shuffle(POOL_ORDER.filter(id=>RULES[id].forg));let fdays=shuffle([4,5,6,7,8,9,10,11]),nf=ri(3,4);
+  let fk=shuffle(POOL_ORDER.filter(id=>RULES[id].forg));const tl=fk.filter(id=>RULES[id].tool);if(tl.length)fk=[tl[0],...fk.filter(id=>id!==tl[0])];let fdays=shuffle([4,5,6,7,8,9,10,11]),nf=ri(3,4);
   for(const id of fk){if(!nf)break;const need=RULES[id].need;const d=fdays.find(d=>!need||(run.rules[need]&&run.rules[need]<=d));
     if(d==null)continue;if(RULES[id].sample==='stamp'&&Object.keys(run.rules).some(x=>RULES[x].sample==='stamp'))continue;run.rules[id]=d;fdays=fdays.filter(x=>x!==d);nf--}
   /* сюжетные линии */
@@ -35,6 +35,8 @@ function setupRun(){
   run.dilemmas={};const dfree=shuffle([3,4,5,6,7,8,9,10]);if(chance(.75))run.dilemmas[ri(4,8)]='op';shuffle(['vet','flood','lend']).slice(0,ri(1,2)).forEach(id=>{const d=dfree.find(x=>!run.dilemmas[x]);if(d)run.dilemmas[d]=id});
   let prev=null,shop=false;
   for(let d=2;d<=11;d++){if(!chance(.45))continue;const ew={...EVENT_W};if(prev)delete ew[prev];if(shop)delete ew.shopper;const e=wpick(ew);run.events[d]=e;prev=e;if(e==='shopper')shop=true}
+  /* погода: к концу октября холоднее */
+  run.weather=rollWeather();
   /* газета */
   const ns=shuffle(NEWS_POOL.map((_,i)=>i));for(let d=2;d<=11;d++)run.news[d]=ns[d-2];
 }

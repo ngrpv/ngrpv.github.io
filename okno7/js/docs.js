@@ -11,6 +11,7 @@ function mrz(p){const ymd=d=>String(d.getFullYear()).slice(2)+pad(d.getMonth()+1
   return esc(l1)+'<br>'+esc(l2)}
 const INK={blue:'#2443a6',black:'#1d1c22',green:'#1f7a43'};
 function payLogo(m){if(m==='МИР')return '<span class="pl mir">МИР</span>';if(m==='СБП')return '<span class="pl sbp">СБП</span>';if(m==='VISA')return '<span class="pl visa">VISA</span>';return '<span class="pl"><svg viewBox="0 0 24 15"><circle cx="8" cy="7.5" r="7" fill="#eb001b"/><circle cx="16" cy="7.5" r="7" fill="#f79e1b" opacity=".9"/></svg></span>'}
+const UV_MARK='<i class="uv-wm"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="50" cy="50" r="38" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="2 2"/><path d="M50 22 l5 11 12 2 -9 8 3 12 -11 -6 -11 6 3 -12 -9 -8 12 -2z" fill="currentColor"/><path d="M26 66 q24 16 48 0" fill="none" stroke="currentColor" stroke-width="2.5"/><text x="50" y="82" text-anchor="middle" font-size="11" font-weight="700" fill="currentColor">РФ</text></svg></i>';
 const snilsEra=()=>inPool('R_SNILSNUM')&&S.run.rules.R_SNILS&&S.day>=S.run.rules.R_SNILS;
 function renderDocs(v){
   v.fields={};let n=0;
@@ -50,6 +51,7 @@ function renderDocs(v){
     </div>
     <div class="pp-sig"><span class="lbl">Личная подпись</span>${F(['sig'],p.sig,sigSVG(p.sig,'#2443a6'),'fsig')}</div>
     ${F(['holo'],p.noholo?'нет':'есть',p.noholo?'':'<i class="holo-i"></i>','holo-f')}
+    ${inPool('F_UV')&&!p.nouv?UV_MARK:''}
     <div class="mrz">${mrz(p)}</div>
   </div>`});
   if(d.receipt){const r=d.receipt;out.push({k:'rec',label:'Квитанция',html:`<div class="doc d-rec${r.font==='fake'?' ffake':''}" style="${tilt()}">
@@ -80,7 +82,8 @@ function renderDocs(v){
     <p>Признаки жизни: дыхание, пульс, недовольство очередью.</p>
     <p>Выдана для предъявления по месту требования.</p>
     <div class="zh-bottom">Дата выдачи: ${F(['issued'],dd(z.issued),`<u>${dd(z.issued)}</u>`)}<br>Врач ${sigSVG(z.dsig,'#2443a6')} ${F(['doctor'],z.doc,esc(z.doc))}
-      ${F(['stamp'],z.stamp,z.stamp==='tri'?triStamp('#3d3aa0'):CLINIC_STAMP(STAMP_COL[z.scol||'violet'],z.nostar),'zh-stampf')}</div>
+      ${F(['stamp'],z.stamp,z.stamp==='tri'?triStamp('#3d3aa0'):CLINIC_STAMP(STAMP_COL[z.scol||'violet'],z.nostar,inPool('F_MICRO')?z.badmicro||MICRO_OK:null),'zh-stampf')}</div>
   </div>`})}
+  if(v.annex)out.push({k:"annex",label:v.annex.label,html:v.annex.html});
   return out;
 }
