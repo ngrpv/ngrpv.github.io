@@ -36,6 +36,16 @@ const CHECK='<svg viewBox="0 0 24 24"><path d="M3 13 Q7 16 9 21 Q13 9 23 2" fill
 const SKIN=['#f3d2b8','#ebc19f','#e0aa84','#d39570','#f6dccb'];
 const HAIR_Y=['#2a2421','#4a3424','#7a5233','#b88a55','#2a2421'];
 const HAIR_O=['#8d8a86','#cfcac2','#a9a49c'];
+// Контуры длинных волн; отдельные слои сохраняют лицо и бейдж читаемыми.
+const HAIR_WAVES={
+  "back": "M48 82 C40 56 50 27 77 24 C91 11 120 18 132 28 C151 42 157 63 152 89 C151 110 146 124 156 142 C174 160 164 179 172 191 Q162 190 151 183 C165 208 143 225 125 224 Q136 211 131 199 C118 205 88 209 74 199 Q65 223 47 220 C57 207 46 197 40 184 Q29 165 41 147 C54 127 42 106 48 82Z",
+  "sides": [
+    "M57 78 C48 101 60 121 48 143 C37 163 47 179 42 192 Q59 184 64 168 C68 151 60 133 66 115 L68 76Z",
+    "M137 65 C157 82 136 105 149 127 C163 149 147 165 157 185 C168 208 153 224 138 223 Q149 208 142 195 C130 178 136 165 130 151 C120 130 133 110 133 87Z"
+  ],
+  "front": "M48 95 C43 73 43 51 55 35 C64 20 76 20 85 24 C96 13 120 19 135 31 C153 48 157 70 149 96 L141 109 C142 88 133 69 116 61 Q93 55 85 40 C83 57 71 70 59 78 L57 104Z",
+  "shine": "M52 72 Q56 39 77 32 M94 29 C126 29 147 54 146 77 M58 118 Q65 143 54 163 M142 130 Q150 146 142 164 M146 184 Q159 208 147 215"
+};
 function faceSVG(f,expr,cls){
   expr=expr||'neutral';
   const O='#2b2420',cx=100,cy=98,rx=50+f.w,ry=60+f.h,top=cy-ry,ey=cy-4,my=ey+40,mw=f.mw,hc=f.hc,sd=shade(f.skin,-.13);
@@ -44,6 +54,7 @@ function faceSVG(f,expr,cls){
   /* задний план: волосы, платок */
   if(f.hat==='platok')S.push(`<path d="M${cx-rx-14} ${cy+34} C${cx-rx-22} ${top-34} ${cx+rx+22} ${top-34} ${cx+rx+14} ${cy+34} Q${cx+rx} ${cy+ry+6} ${cx} ${cy+ry+18} Q${cx-rx} ${cy+ry+6} ${cx-rx-14} ${cy+34}Z" fill="${f.hatc}" ${st}/>`);
   else if(!cover){
+    if(f.hair==='waves')S.push(`<path d="${HAIR_WAVES.back}" fill="${hc}" ${st}/>`);
     if(f.hair==='long')S.push(`<path d="M${cx-rx-8} ${cy} C${cx-rx-12} ${top-20} ${cx+rx+12} ${top-20} ${cx+rx+8} ${cy} L${cx+rx+12} ${cy+76} Q${cx} ${cy+92} ${cx-rx-12} ${cy+76}Z" fill="${hc}" ${st}/>`);
     if(f.hair==='bun')S.push(`<circle cx="${cx+8}" cy="${top-8}" r="20" fill="${hc}" ${st}/>`);
     if(f.hair==='perm')for(let a=160;a<=380;a+=15){const r=a*Math.PI/180;S.push(`<circle cx="${(cx+(rx+5)*Math.cos(r)).toFixed(1)}" cy="${(cy-4+(ry+5)*Math.sin(r)).toFixed(1)}" r="14" fill="${hc}" ${st}/>`)}
@@ -54,6 +65,7 @@ function faceSVG(f,expr,cls){
   S.push(`<path d="M${cx-bw-26} 236 C${cx-bw-20} ${by+16} ${cx-46} ${by} ${cx} ${by} C${cx+46} ${by} ${cx+bw+20} ${by+16} ${cx+bw+26} 236Z" fill="${cc}" ${st}/>`);
   const dk=shade(cc,-.25);
   switch(f.clo){
+    case'tee':S.push(`<path d="M${cx-20} ${by} Q${cx} ${by+18} ${cx+20} ${by}" fill="none" stroke="#d0c8bf" stroke-width="3"/>`);break;
     case'suit':S.push(`<path d="M${cx-18} ${by-1} L${cx} ${by+42} L${cx+18} ${by-1}Z" fill="#f3f1ea" ${st}/>`);if(f.tie)S.push(`<path d="M${cx-6} ${by+5} L${cx+6} ${by+5} L${cx+9} ${by+48} L${cx} ${by+60} L${cx-9} ${by+48}Z" fill="${f.tie}" ${st}/>`);S.push(`<path d="M${cx-18} ${by} L${cx-34} ${by+24} L${cx-8} ${by+66} M${cx+18} ${by} L${cx+34} ${by+24} L${cx+8} ${by+66}" fill="none" ${st}/>`);break;
     case'cardigan':S.push(`<path d="M${cx-20} ${by-1} L${cx} ${by+46} L${cx+20} ${by-1}Z" fill="${f.blouse||'#efe6d6'}" ${st}/><circle cx="${cx}" cy="${by+54}" r="3.2" fill="${O}"/><circle cx="${cx}" cy="${by+68}" r="3.2" fill="${O}"/>`);break;
     case'hoodie':S.push(`<path d="M${cx-46} ${by+2} Q${cx} ${by+34} ${cx+46} ${by+2}" fill="none" stroke="${dk}" stroke-width="11" stroke-linecap="round"/><path d="M${cx-10} ${by+16} L${cx-13} ${by+48} M${cx+10} ${by+16} L${cx+13} ${by+48}" ${st} fill="none" stroke-width="2.4"/>`);if(f.print)S.push(`<text x="${cx}" y="${by+56}" text-anchor="middle" font-family="PT Sans Narrow,sans-serif" font-weight="700" font-size="11" fill="#fff" opacity=".85">${f.print}</text>`);break;
@@ -62,9 +74,9 @@ function faceSVG(f,expr,cls){
     case'shirt':S.push(`<path d="M${cx-20} ${by-4} L${cx-4} ${by+16} L${cx-26} ${by+14}Z M${cx+20} ${by-4} L${cx+4} ${by+16} L${cx+26} ${by+14}Z" fill="${shade(cc,.35)}" ${st}/><circle cx="${cx}" cy="${by+30}" r="2.4" fill="${O}"/><circle cx="${cx}" cy="${by+48}" r="2.4" fill="${O}"/>`);break;
     case'fur':for(let i=-4;i<=4;i++)S.push(`<circle cx="${cx+i*13}" cy="${by+2+Math.abs(i)*3}" r="12" fill="${f.fur}" ${st} stroke-width="2"/>`);break;
   }
-  if(f.badge)S.push('<g class="staff-badge"><path d="M'+(cx+34)+' '+(by+8)+' v24" stroke="#d9d8d2" stroke-width="3"/><rect x="'+(cx+12)+'" y="'+(by+32)+'" width="44" height="25" rx="3" fill="#f8f5eb" stroke="'+O+'" stroke-width="1.5"/><text x="'+(cx+34)+'" y="'+(by+43)+'" text-anchor="middle" font-family="PT Sans Narrow,sans-serif" font-size="8" font-weight="700" fill="'+O+'">'+esc(f.badge)+'</text><text x="'+(cx+34)+'" y="'+(by+51)+'" text-anchor="middle" font-family="PT Sans Narrow,sans-serif" font-size="6" fill="'+O+'">АДМИНИСТРАТОР</text></g>');
+  if(!cover&&f.hair==='waves')S.push(`<g class="hair-waves" fill="${hc}" ${st}>${HAIR_WAVES.sides.map(d=>`<path d="${d}"/>`).join('')}</g>`);
   /* уши и голова */
-  if(f.hat!=='platok'){S.push(`<ellipse cx="${cx-rx+1}" cy="${cy+4}" rx="9" ry="13" fill="${f.skin}" ${st}/><ellipse cx="${cx+rx-1}" cy="${cy+4}" rx="9" ry="13" fill="${f.skin}" ${st}/>`);if(f.ear)S.push(`<circle cx="${cx-rx+1}" cy="${cy+19}" r="3.4" fill="#e3b341" stroke="${O}" stroke-width="1.5"/><circle cx="${cx+rx-1}" cy="${cy+19}" r="3.4" fill="#e3b341" stroke="${O}" stroke-width="1.5"/>`)}
+  if(f.hat!=='platok'){S.push(`<ellipse cx="${cx-rx+1}" cy="${cy+4}" rx="9" ry="13" fill="${f.skin}" ${st}/><ellipse cx="${cx+rx-1}" cy="${cy+4}" rx="9" ry="13" fill="${f.skin}" ${st}/>`);if(f.ear==='stud')S.push(`<circle cx="${cx-rx+1}" cy="${cy+19}" r="1.9" fill="#eeeae4" stroke="#8e8781" stroke-width=".9"/><circle cx="${cx+rx-1}" cy="${cy+19}" r="1.9" fill="#eeeae4" stroke="#8e8781" stroke-width=".9"/>`);else if(f.ear)S.push(`<circle cx="${cx-rx+1}" cy="${cy+19}" r="3.4" fill="#e3b341" stroke="${O}" stroke-width="1.5"/><circle cx="${cx+rx-1}" cy="${cy+19}" r="3.4" fill="#e3b341" stroke="${O}" stroke-width="1.5"/>`)}
   S.push(`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${f.skin}" ${st}/>`);
   if(f.age>52)S.push(`<path d="M${cx-18} ${top+ry*.36} q18 -5 36 0 M${cx-14} ${top+ry*.36+8} q14 -4 28 0" fill="none" stroke="${sd}" stroke-width="2"/><path d="M${cx-16} ${ey+18} q-6 10 -2 20 M${cx+16} ${ey+18} q6 10 2 20" fill="none" stroke="${sd}" stroke-width="2"/>`);
   if(f.blush)S.push(`<circle cx="${cx-32}" cy="${ey+22}" r="9" fill="#ff7f7f" opacity=".3"/><circle cx="${cx+32}" cy="${ey+22}" r="9" fill="#ff7f7f" opacity=".3"/>`);
@@ -73,7 +85,8 @@ function faceSVG(f,expr,cls){
   /* глаза, брови */
   if(f.gl!=='sun'){S.push(`<g class="eyes"><ellipse cx="${cx-21}" cy="${ey}" rx="${(3.6*f.eye).toFixed(1)}" ry="${(4.8*f.eye).toFixed(1)}" fill="${O}"/><ellipse cx="${cx+21}" cy="${ey}" rx="${(3.6*f.eye).toFixed(1)}" ry="${(4.8*f.eye).toFixed(1)}" fill="${O}"/></g>`);if(f.age>55)S.push(`<path d="M${cx-29} ${ey+9} Q${cx-21} ${ey+14} ${cx-13} ${ey+9} M${cx+13} ${ey+9} Q${cx+21} ${ey+14} ${cx+29} ${ey+9}" fill="none" stroke="${sd}" stroke-width="2"/>`)}
   const bo={neutral:[0,0],happy:[-3,-3],angry:[6,-3],sad:[-5,3],sly:[3,-5]}[expr]||[0,0],b0=ey-15,bc=(f.hair==='bald'||f.age>60)?'#8d8a86':hc;
-  S.push(`<path d="M${cx-33} ${b0+bo[1]} L${cx-11} ${b0+bo[0]} M${cx+11} ${b0+(expr==='sly'?-4:bo[0])} L${cx+33} ${b0+bo[1]}" stroke="${bc}" stroke-width="${f.bw}" stroke-linecap="round" fill="none"/>`);
+  const brow=f.brow==='arched'?`M${cx-32} ${b0+bo[1]} Q${cx-21} ${b0-4+(bo[0]+bo[1])/2} ${cx-11} ${b0+bo[0]} M${cx+11} ${b0+(expr==='sly'?-4:bo[0])} Q${cx+21} ${b0-4+(bo[0]+bo[1])/2} ${cx+32} ${b0+bo[1]}`:`M${cx-33} ${b0+bo[1]} L${cx-11} ${b0+bo[0]} M${cx+11} ${b0+(expr==='sly'?-4:bo[0])} L${cx+33} ${b0+bo[1]}`;
+  S.push(`<path d="${brow}" stroke="${bc}" stroke-width="${f.bw}" stroke-linecap="round" fill="none"/>`);
   /* нос */
   const nz={line:`<path d="M${cx+2} ${ey+4} Q${cx-8} ${ey+21} ${cx+3} ${ey+25}" fill="none" ${st} stroke-width="2.5"/>`,round:`<ellipse cx="${cx}" cy="${ey+20}" rx="8" ry="6.5" fill="${sd}" ${st} stroke-width="2.2"/>`,big:`<path d="M${cx-4} ${ey+2} Q${cx-13} ${ey+22} ${cx-11} ${ey+27} Q${cx} ${ey+33} ${cx+11} ${ey+27} Q${cx+13} ${ey+22} ${cx+4} ${ey+2}" fill="${f.skin}" ${st} stroke-width="2.5"/>`,hook:`<path d="M${cx-1} ${ey} Q${cx+13} ${ey+20} ${cx+4} ${ey+27} L${cx-5} ${ey+25}" fill="none" ${st} stroke-width="2.5"/>`};
   S.push(nz[f.nose]||nz.line);
@@ -82,8 +95,8 @@ function faceSVG(f,expr,cls){
   if(f.beard==='goatee')S.push(`<path d="M${cx-12} ${my+8} Q${cx} ${my+30} ${cx+12} ${my+8} Q${cx} ${my+14} ${cx-12} ${my+8}Z" fill="${hc}" ${st} stroke-width="2"/>`);
   if(f.beard==='stubble'&&f.stub)S.push(`<g fill="${shade(f.skin,-.45)}" opacity=".55">${f.stub.map(([x,y])=>`<circle cx="${cx+x}" cy="${cy+y}" r="1.1"/>`).join('')}</g>`);
   /* рот */
-  const lc=f.lip?'#b5333f':O,lw=f.lip?4:3;
-  const mouths={neutral:`<path d="M${cx-mw} ${my} Q${cx} ${my+2} ${cx+mw} ${my}" fill="none" stroke="${lc}" stroke-width="${lw}" stroke-linecap="round"/>`,
+  const lc=f.lip?(f.lipColor||'#b5333f'):O,lw=f.lip?(f.lipWidth||4):3;
+  const mouths={neutral:`<path d="M${cx-mw} ${my} Q${cx} ${my+(f.mouthCurve==null?2:f.mouthCurve)} ${cx+mw} ${my}" fill="none" stroke="${lc}" stroke-width="${lw}" stroke-linecap="round"/>`,
     happy:`<path d="M${cx-mw-3} ${my-3} Q${cx} ${my+17} ${cx+mw+3} ${my-3} Q${cx} ${my+3} ${cx-mw-3} ${my-3}Z" fill="#fff" stroke="${lc}" stroke-width="${lw-.5}" stroke-linejoin="round"/>`,
     angry:`<path d="M${cx-mw} ${my+5} Q${cx} ${my-7} ${cx+mw} ${my+5}" fill="none" stroke="${lc}" stroke-width="${lw}" stroke-linecap="round"/>`,
     sad:`<path d="M${cx-mw+2} ${my+4} Q${cx} ${my-3} ${cx+mw-2} ${my+4}" fill="none" stroke="${lc}" stroke-width="${lw}" stroke-linecap="round"/>`,
@@ -93,10 +106,11 @@ function faceSVG(f,expr,cls){
   if(f.must==='walrus')S.push(`<path d="M${cx-24} ${my-2} Q${cx-14} ${my-17} ${cx} ${my-12} Q${cx+14} ${my-17} ${cx+24} ${my-2} Q${cx+11} ${my-6} ${cx} ${my-4} Q${cx-11} ${my-6} ${cx-24} ${my-2}Z" fill="${f.age>60?'#a9a49c':hc}" ${st} stroke-width="2.2"/>`);
   if(f.must==='thin')S.push(`<path d="M${cx-15} ${my-7} Q${cx} ${my-12} ${cx+15} ${my-7}" fill="none" stroke="${hc}" stroke-width="3.5" stroke-linecap="round"/>`);
   /* передние волосы */
-  const cap=(fy,sy,fill,op)=>`<path d="M${cx-rx-3} ${sy} C${cx-rx-6} ${top-30} ${cx+rx+6} ${top-30} ${cx+rx+3} ${sy} Q${cx+rx*.55} ${fy-4} ${cx+rx*.1} ${fy} Q${cx-rx*.45} ${fy+5} ${cx-rx+2} ${sy+6}Z" fill="${fill}" ${op?`opacity="${op}"`:''} ${st}/>`;
+  const cap=(fy,sy,fill,op)=>`<path d="M${cx-rx-3} ${sy} C${cx-rx-6} ${top-30-(f.hairLift||0)} ${cx+rx+6} ${top-30-(f.hairLift||0)} ${cx+rx+3} ${sy} Q${cx+rx*.55} ${fy-4} ${cx+rx*.1} ${fy} Q${cx-rx*.45} ${fy+5} ${cx-rx+2} ${sy+6}Z" fill="${fill}" ${op?`opacity="${op}"`:''} ${st}/>`;
   const tufts=`<path d="M${cx-rx} ${cy+6} Q${cx-rx-6} ${cy-20} ${cx-rx+12} ${cy-34} M${cx+rx} ${cy+6} Q${cx+rx+6} ${cy-20} ${cx+rx-12} ${cy-34}" stroke="${hc}" stroke-width="10" fill="none" stroke-linecap="round"/>`;
   if(!cover&&f.hat!=='platok'){
     switch(f.hair){
+      case'waves':S.push(`<g class="hair-waves" fill="${hc}" ${st}><path d="${HAIR_WAVES.front}"/></g><path d="${HAIR_WAVES.shine}" fill="none" stroke="${f.hairShine||shade(hc,.35)}" stroke-width="2" stroke-linecap="round"/>`);break;
       case'short':case'long':S.push(cap(top+ry*.42,cy-8,hc));break;
       case'bun':S.push(cap(top+24,cy-8,hc));break;
       case'buzz':S.push(cap(top+20,cy-12,hc,.6));break;
@@ -111,6 +125,7 @@ function faceSVG(f,expr,cls){
   if(f.hat==='platok'){S.push(`<path d="M${cx-rx-5} ${cy+16} C${cx-rx-12} ${top-24} ${cx+rx+12} ${top-24} ${cx+rx+5} ${cy+16} L${cx+rx-6} ${cy+12} C${cx+rx-6} ${top+4} ${cx-rx+6} ${top+4} ${cx-rx+6} ${cy+12}Z" fill="${f.hatc}" ${st}/>`);for(let i=0;i<9;i++){const a=(200+i*17.5)*Math.PI/180;S.push(`<circle cx="${(cx+(rx-2)*Math.cos(a)).toFixed(1)}" cy="${(cy-2+(ry-4)*Math.sin(a)).toFixed(1)}" r="3.2" fill="#fff" opacity=".85"/>`)}S.push(`<path d="M${cx-6} ${cy+ry+6} l-16 18 l14 3Z M${cx+6} ${cy+ry+6} l16 18 l-14 3Z" fill="${f.hatc}" ${st} stroke-width="2.4"/><circle cx="${cx}" cy="${cy+ry+8}" r="7" fill="${f.hatc}" ${st} stroke-width="2.4"/>`)}
   if(f.hat==='ushanka')S.push(`<rect x="${cx-rx-13}" y="${cy-14}" width="24" height="58" rx="11" fill="${f.hatc}" ${st}/><rect x="${cx+rx-11}" y="${cy-14}" width="24" height="58" rx="11" fill="${f.hatc}" ${st}/><path d="M${cx-rx-6} ${top+34} C${cx-rx-8} ${top-32} ${cx+rx+8} ${top-32} ${cx+rx+6} ${top+34}Z" fill="${shade(f.hatc,-.18)}" ${st}/><rect x="${cx-rx-10}" y="${top+16}" width="${2*rx+20}" height="26" rx="13" fill="${f.hatc}" ${st}/>`);
   if(f.hat==='beanie'){S.push(`<circle cx="${cx}" cy="${top-24}" r="12" fill="${shade(f.hatc,.3)}" ${st}/><path d="M${cx-rx-4} ${top+36} C${cx-rx-6} ${top-36} ${cx+rx+6} ${top-36} ${cx+rx+4} ${top+36}Z" fill="${f.hatc}" ${st}/><rect x="${cx-rx-6}" y="${top+20}" width="${2*rx+12}" height="20" rx="6" fill="${shade(f.hatc,-.15)}" ${st}/>`);let rb='';for(let x=cx-rx;x<cx+rx;x+=7)rb+=`M${x} ${top+23} v14 `;S.push(`<path d="${rb}" stroke="${shade(f.hatc,-.35)}" stroke-width="1.5"/>`)}
+  if(f.badge)S.push('<g class="staff-badge"><path d="M'+(cx+34)+' '+(by+8)+' v24" stroke="#d9d8d2" stroke-width="3"/><rect x="'+(cx+12)+'" y="'+(by+32)+'" width="44" height="25" rx="3" fill="#f8f5eb" stroke="'+O+'" stroke-width="1.5"/><text x="'+(cx+34)+'" y="'+(by+43)+'" text-anchor="middle" font-family="PT Sans Narrow,sans-serif" font-size="8" font-weight="700" fill="'+O+'">'+esc(f.badge)+'</text><text x="'+(cx+34)+'" y="'+(by+51)+'" text-anchor="middle" font-family="PT Sans Narrow,sans-serif" font-size="6" fill="'+O+'">АДМИНИСТРАТОР</text></g>');
   /* очки */
   if(f.gl==='round')S.push(`<g fill="rgba(255,255,255,.18)" stroke="${O}" stroke-width="2.6"><circle cx="${cx-21}" cy="${ey}" r="13"/><circle cx="${cx+21}" cy="${ey}" r="13"/></g><path d="M${cx-8} ${ey-2} Q${cx} ${ey-7} ${cx+8} ${ey-2} M${cx-34} ${ey-2} L${cx-rx+3} ${ey-6} M${cx+34} ${ey-2} L${cx+rx-3} ${ey-6}" stroke="${O}" stroke-width="2.6" fill="none"/>`);
   if(f.gl==='square')S.push(`<g fill="rgba(255,255,255,.15)" stroke="${O}" stroke-width="2.8"><rect x="${cx-36}" y="${ey-10}" width="29" height="21" rx="4"/><rect x="${cx+7}" y="${ey-10}" width="29" height="21" rx="4"/></g><path d="M${cx-7} ${ey-3} L${cx+7} ${ey-3} M${cx-36} ${ey-4} L${cx-rx+3} ${ey-7} M${cx+36} ${ey-4} L${cx+rx-3} ${ey-7}" stroke="${O}" stroke-width="2.8"/>`);

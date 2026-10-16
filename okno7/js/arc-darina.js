@@ -3,8 +3,9 @@
    ДАРИНА САФОНОВА: студентка, администратор, бывшая практикантка.
    Три обычных обращения. Основания отказа — только действующий регламент.
    ========================================================= */
-const DARINA_FACE={hair:'bun',hc:'#52392d',hat:'none',gl:'none',clo:'cardigan',cc:'#68718a',blouse:'#f2eee5',
-  skin:'#f0c9af',w:-2,h:-1,eye:1,bw:3,nose:'line',mw:11,ear:true,lip:true,blush:false,mole:null,beard:'none',must:'none',print:null};
+const DARINA_FACE={hair:'waves',hc:'#574235',hairShine:'#785e49',hat:'none',gl:'none',clo:'tee',cc:'#f1efea',
+  skin:'#f0c7b3',w:-5,h:-1,eye:1,bw:2.5,brow:'arched',nose:'line',mw:11,ear:'stud',lip:true,lipColor:'#b47777',lipWidth:3.5,mouthCurve:4,
+  blush:false,mole:null,beard:'none',must:'none',print:null};
 const DARINA_TEXT=[
   {service:'Регистрация медицинской справки для деканата',h:'Объяснительная для деканата',
     intro:'Здравствуйте. Дарина Сафонова. Мне зарегистрировать медицинскую справку для деканата.',
