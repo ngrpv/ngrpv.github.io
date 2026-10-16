@@ -73,6 +73,10 @@ test('картинки превью и иконка существуют', () =>
   ['og.png', 'apple-touch-icon.png'].forEach(f => assert(fs.existsSync(path.join(ROOT, f)), 'нет ' + f));
 });
 
+test('номер сборки соответствует файлам, скрипты и стили используют его в URL', () => {
+  require('../tools/version.cjs').verify();
+});
+
 console.log('Данные');
 test('у каждой концовки есть текст, заголовок и подсказка; порядок архива без дыр', () => {
   const E = SIM.ENDINGS;

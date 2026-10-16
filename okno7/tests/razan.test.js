@@ -134,8 +134,7 @@ function interfaceHarness(){
   const document=element();
   document.querySelector=selector=>{if(!nodes.has(selector))nodes.set(selector,element());return nodes.get(selector)};
   document.querySelectorAll=()=>[];
-  const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
-  const srcs=[...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map(m=>m[1]);
+  const srcs=require('../tools/game-loader').scriptList();
   const code=srcs.map(file=>fs.readFileSync(path.join(__dirname,'..',file),'utf8')).join('\n');
   const instrumentation='\nsay=async line=>{window.__OKNO_SIM__.spoken=line};hud=()=>{};setFace=()=>{};mountDocs=()=>[];rerenderDocs=()=>{window.__OKNO_SIM__.renders=(window.__OKNO_SIM__.renders||0)+1};Object.assign(window.__OKNO_SIM__,{enter,showAsk});\n';
   const window={__OKNO_SIM__:{}};

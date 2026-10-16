@@ -46,6 +46,9 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid #ffd400;outline-
 .btn[disabled]{opacity:.5}
 .t-foot{font:12px var(--f-ui);color:#cfe0d8;text-align:center;max-width:34ch;line-height:1.45}
 
+.game-version{display:block;margin-top:8px;font:11px/1.5 var(--f-mono);letter-spacing:.04em;user-select:text}
+.help-version{font:12px var(--f-mono);color:var(--ink-soft)}
+
 /* ---------- PAPER SCREENS (contract, brief, evening, ending) ---------- */
 .deskbg{background:var(--desk);background-image:var(--speckle)}
 .scroll{flex:1;overflow-y:auto;padding:18px 16px 24px;-webkit-overflow-scrolling:touch}

@@ -12,6 +12,7 @@ const KEYS_HELP=[['Пробел / Enter','Следующий! · вернуть 
 function helpHtml(){
   const D=diff(),free=(typeof G!=='undefined'&&G&&S&&!$('#s-work').hidden)?G.freeErr:(S?Math.max(1,role().freeErr+D.free):2);
   return `<h3>Как играть</h3>
+  <p class="help-version">${esc($('#game-version').textContent)} · сборка ${esc($('#game-version').dataset.build)}</p>
   <p><b>Цель.</b> Отработать 12 смен в окне №7. Регламент меняется каждое утро: читайте распоряжение и новые пункты.</p>
   <ol class="helpsteps">
     <li>Нажмите <b>«Следующий!»</b> — гражданин положит документы на стол.</li>

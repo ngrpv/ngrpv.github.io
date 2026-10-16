@@ -8,7 +8,7 @@ const ROOT = path.join(__dirname, '..');
 
 function scriptList() {
   const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
-  return [...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map(m => m[1]);
+  return [...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map(m => m[1].split('?')[0]);
 }
 
 // Заглушка DOM: любой элемент принимает любые свойства и вызовы.
