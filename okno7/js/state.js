@@ -19,12 +19,31 @@ function freshState(r,d){const R=ROLES[r]||ROLES.young;return{v:2,role:r,diff:DI
 function save(){S.savedAt=Date.now();store.set('save',S)}
 
 /* --- партия: какие правила, сюжеты и события выпали --- */
-const ARC_W={dubov:1.6,student:1,kuzmin:1,zhanna:1,it:1,babushka:1,deputy:1,notary:1,razan:1};
-/* тестовый режим: ?arcs=razan,notary в адресе принудительно ставит сюжетные линии в обычной партии (в «Смене дня» не действует) */
-function forcedArcs(){try{if(typeof location==='undefined'||(S&&S.daily))return[];const q=new URLSearchParams(location.search).get('arcs');return q?[...new Set(q.split(',').map(x=>x.trim()))].filter(id=>ARCS[id]).slice(0,3):[]}catch(e){return[]}}
-function setupRun(){
-  const run={rules:{},params:{banned:pick(SERVICES_ALL),doctor:pick(DOCTORS),tariffDay:0},events:{},news:{},arcs:[]};
+const ARC_W={dubov:1.6,student:1,kuzmin:1,zhanna:1,it:1,babushka:1,deputy:1,notary:1,razan:1,darina:1};
+// Числовые и строковые сиды задают всю партию; состояние генератора сохраняется вместе с ней.
+function seedHash(value){let h=2166136261;for(const c of String(value)){h^=c.codePointAt(0);h=Math.imul(h,16777619)}return h>>>0}
+function campaignRandom(){
+  const run=S&&S.run;
+  if(!run||run.seed==null)return Math.random();
+  let t=run.rng=(run.rng+0x6D2B79F5)>>>0;
+  t=Math.imul(t^t>>>15,1|t);t^=t+Math.imul(t^t>>>7,61|t);
+  return((t^t>>>14)>>>0)/4294967296;
+}
+rnd=campaignRandom;
+function readRunOptions(search){
+  const query=search===undefined?(typeof window!=='undefined'&&window.location?window.location.search:''):search;
+  const p=new URLSearchParams(query||'');
+  return{seed:p.get('seed'),arcs:p.getAll('arcs').flatMap(s=>s.split(','))};
+}
+
+function setupRun(options){
+  const opt=S&&S.daily?{seed:null,arcs:[]}:(options||readRunOptions());
+  const seed=opt.seed==null||String(opt.seed).trim()===''?null:String(opt.seed).trim().slice(0,80);
+  const forced=[...new Set((Array.isArray(opt.arcs)?opt.arcs:[]).map(s=>String(s).trim().toLowerCase()))].filter(id=>Object.prototype.hasOwnProperty.call(ARC_W,id)).slice(0,3);
+  const run={seed,rng:seed==null?null:seedHash(seed),rules:{},params:{},events:{},news:{},arcs:[]};
   S.run=run;S.arcs={};
+  if(seed!=null)rnd=campaignRandom;
+  run.params={banned:pick(SERVICES_ALL),doctor:pick(DOCTORS),tariffDay:0};
   CORE.forEach(id=>run.rules[id]=1);
   const cand=shuffle(POOL_ORDER.filter(id=>!RULES[id].core&&!RULES[id].forg));
   const ok=(c,d)=>!run.rules[c]&&(!RULES[c].need||(run.rules[RULES[c].need]&&run.rules[RULES[c].need]<=d))&&(!RULES[c].odd||d%2===1);
@@ -39,7 +58,7 @@ function setupRun(){
   for(const id of fk){if(!nf)break;const need=RULES[id].need;const d=fdays.find(d=>!need||(run.rules[need]&&run.rules[need]<=d));
     if(d==null)continue;if(RULES[id].sample==='stamp'&&Object.keys(run.rules).some(x=>RULES[x].sample==='stamp'))continue;run.rules[id]=d;fdays=fdays.filter(x=>x!==d);nf--}
   /* сюжетные линии */
-  const w={...ARC_W},n=chance(.6)?3:2,forced=forcedArcs();
+  const w={...ARC_W},n=Math.max(forced.length,chance(.6)?3:2);
   const addArc=id=>{delete w[id];run.arcs.push(id);S.arcs[id]={};ARCS[id].setup(S.arcs[id])};
   forced.forEach(addArc);for(let i=forced.length;i<n;i++)addArc(wpick(w));
   /* события смены */

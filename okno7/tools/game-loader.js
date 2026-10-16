@@ -26,12 +26,12 @@ function el() {
   });
 }
 
-function loadGame() {
+function loadGame(search = '') {
   const script = '(()=>{\n' + scriptList().map(f => fs.readFileSync(path.join(ROOT, f), 'utf8')).join('\n') + '\n})();';
   const document = el();
   document.querySelectorAll = () => [];
   const localStore = {};
-  const window = { __OKNO_SIM__: {} };
+  const window = { __OKNO_SIM__: {}, location: { search } };
   const navigator = {};
   const noop = () => 0;
   new Function('window', 'document', 'navigator', 'setInterval', 'setTimeout', 'requestAnimationFrame', script)(

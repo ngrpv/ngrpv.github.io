@@ -4,7 +4,7 @@
    ========================================================= */
 let VID=0;
 /* в «смене дня» посетитель зависит только от даты, дня, номера в очереди и порядка вызова внутри него */
-function visitorSeed(){if(S&&S.daily&&W){W.vc=(W.vc||0)+1;return hash(S.daily.seed,S.day*100+W.idx,W.vc)}return (Math.random()*1e9)|0}
+function visitorSeed(){if(S&&S.daily&&W){W.vc=(W.vc||0)+1;return hash(S.daily.seed,S.day*100+W.idx,W.vc)}return ri(1,1e9)}
 const ruTel=()=>`+7 9${ri(10,99)} ${ri(100,999)}-${pad(ri(0,99))}-${pad(ri(0,99))}`;
 const foreignTel=()=>`${pick(FOREIGN_TEL)} ${ri(10,99)} ${ri(100,999)}-${ri(100,999)}`;
 const snilsNum=()=>`${ri(100,999)}-${ri(100,999)}-${ri(100,999)} ${pad(ri(0,99))}`;
@@ -69,6 +69,13 @@ const recheck=v=>{v.viol=activeIds().filter(id=>RULES[id].check(v))};
 function makeShopper(){const v=genVisitor({special:'shopper',arch:'shopper',fio:['Обычный','Иван','Иванович'],flaws:arcFlaws(1),noBribe:true,named:true,intro:'Здравствуйте. Я самый обычный гражданин. Совершенно обычный.'});
   v.bribe={kind:'cash',amount:5000,upfront:true,shopper:true};v.lines.plead=['Обычный гражданин в такой ситуации расстроился бы.','Интересно, а что у вас в регламенте на этот счёт?'];v.lines.ok=['Благодарю. Я всё запомнил.'];v.lines.no=['Интересно. Очень интересно.'];return v}
 
+// Выбор ошибки и создание сюжетного посетителя тоже входят в воспроизводимую очередь.
+function makeQueuedVisitor(sp){
+  W.vc=0;
+  const seed=S.daily?S.daily.seed:S.run.seed!=null?seedHash(S.run.seed):null;
+  const make=()=>sp?sp.make():genVisitor();
+  return seed==null?make():withSeed(hash(seed,S.day*100+W.idx,101),make);
+}
 /* --- расписание особых посетителей на день --- */
 function planSpecials(){
   const day=S.day,list=[];

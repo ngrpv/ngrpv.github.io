@@ -62,6 +62,7 @@ function faceSVG(f,expr,cls){
     case'shirt':S.push(`<path d="M${cx-20} ${by-4} L${cx-4} ${by+16} L${cx-26} ${by+14}Z M${cx+20} ${by-4} L${cx+4} ${by+16} L${cx+26} ${by+14}Z" fill="${shade(cc,.35)}" ${st}/><circle cx="${cx}" cy="${by+30}" r="2.4" fill="${O}"/><circle cx="${cx}" cy="${by+48}" r="2.4" fill="${O}"/>`);break;
     case'fur':for(let i=-4;i<=4;i++)S.push(`<circle cx="${cx+i*13}" cy="${by+2+Math.abs(i)*3}" r="12" fill="${f.fur}" ${st} stroke-width="2"/>`);break;
   }
+  if(f.badge)S.push('<g class="staff-badge"><path d="M'+(cx+34)+' '+(by+8)+' v24" stroke="#d9d8d2" stroke-width="3"/><rect x="'+(cx+12)+'" y="'+(by+32)+'" width="44" height="25" rx="3" fill="#f8f5eb" stroke="'+O+'" stroke-width="1.5"/><text x="'+(cx+34)+'" y="'+(by+43)+'" text-anchor="middle" font-family="PT Sans Narrow,sans-serif" font-size="8" font-weight="700" fill="'+O+'">'+esc(f.badge)+'</text><text x="'+(cx+34)+'" y="'+(by+51)+'" text-anchor="middle" font-family="PT Sans Narrow,sans-serif" font-size="6" fill="'+O+'">АДМИНИСТРАТОР</text></g>');
   /* уши и голова */
   if(f.hat!=='platok'){S.push(`<ellipse cx="${cx-rx+1}" cy="${cy+4}" rx="9" ry="13" fill="${f.skin}" ${st}/><ellipse cx="${cx+rx-1}" cy="${cy+4}" rx="9" ry="13" fill="${f.skin}" ${st}/>`);if(f.ear)S.push(`<circle cx="${cx-rx+1}" cy="${cy+19}" r="3.4" fill="#e3b341" stroke="${O}" stroke-width="1.5"/><circle cx="${cx+rx-1}" cy="${cy+19}" r="3.4" fill="#e3b341" stroke="${O}" stroke-width="1.5"/>`)}
   S.push(`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${f.skin}" ${st}/>`);

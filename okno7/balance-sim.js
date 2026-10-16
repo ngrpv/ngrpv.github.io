@@ -45,7 +45,7 @@ function runOne(stratName, roleName, diffName) {
     const n = Math.floor(480 / MIN_PER_VISITOR[stratName]);
     for (let i = 0; i < n; i++) {
       const sp = G.W.specials[G.W.idx]; G.W.idx++;
-      const v = sp ? sp.make() : G.genVisitor();
+      const v = G.makeQueuedVisitor(sp);
       if (sp) sp.done = true;
       if (v.role === 'finale') continue;
       // подношение
@@ -112,4 +112,4 @@ function main() {
   console.log('\nНе встретились ни разу:', missing.join(', ') || 'нет');
 }
 if (require.main === module) main();
-module.exports = { runOne, G };
+module.exports = { runOne, G, load };

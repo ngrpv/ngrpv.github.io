@@ -119,16 +119,31 @@ function tut(step){
 }
 
 /* --- реплики --- */
-let sayT=0,sayToken=0;
-function bubble(text){const b=$('#bubble');if(!text){b.classList.add('hidden');$('#cit').classList.remove('talking');return}b.classList.remove('hidden')}
-function say(text,expr,v){
-  v=v||W.v;if(!v)return Promise.resolve();
-  if(expr)setFace(v,expr);
-  const my=++sayToken;bubble(true);const el=$('#bubble-t');el.textContent='';
-  const cit=$('#cit');cit.classList.add('talking');
-  if(REDUCED){el.textContent=text;cit.classList.remove('talking');return Promise.resolve()}
-  return new Promise(res=>{let i=0;clearInterval(sayT);sayT=setInterval(()=>{if(my!==sayToken){clearInterval(sayT);res();return}i+=1;el.textContent=text.slice(0,i);if(i%3===0)SND.play('tick');if(i>=text.length){clearInterval(sayT);cit.classList.remove('talking');res()}},22)});
+let sayT=0,speech=null;
+function finishSpeech(showFull){
+  clearInterval(sayT);sayT=0;
+  const previous=speech;speech=null;
+  if(showFull&&previous)$('#bubble-t').textContent=previous.text;
+  $('#cit').classList.remove('talking');
+  if(previous)previous.resolve();
 }
+function bubble(text){
+  const b=$('#bubble');b.classList.toggle('hidden',!text);b.tabIndex=text?0:-1;b.setAttribute('aria-hidden',String(!text));
+  if(!text)finishSpeech();
+}
+function say(text,expr,v){
+  v=v||(W&&W.v);if(!v)return Promise.resolve();
+  finishSpeech();if(expr)setFace(v,expr);bubble(true);
+  const el=$('#bubble-t'),cit=$('#cit');el.textContent='';el.scrollTop=0;
+  if(REDUCED){el.textContent=text;return Promise.resolve()}
+  cit.classList.add('talking');
+  return new Promise(resolve=>{let i=0;speech={text,resolve};sayT=setInterval(()=>{
+    i++;el.textContent=text.slice(0,i);if(i%3===0)SND.play('tick');
+    if(i>=text.length)finishSpeech();
+  },22)});
+}
+$('#bubble').addEventListener('click',()=>finishSpeech(true));
+$('#bubble').addEventListener('keydown',e=>{if(e.code==='Enter'||e.code==='Space'){e.preventDefault();e.stopPropagation();finishSpeech(true)}});
 function setFace(v,expr){$('#cit').innerHTML=faceSVG(v.face,expr);}
 
 /* --- вызов следующего --- */
@@ -140,10 +155,9 @@ async function callNext(){
   S.ticket++;SND.play('ding');led(`А-${pad3(S.ticket)} → ОКНО 7`);announce(S.ticket);
   const sp=W.specials[W.idx];W.idx++;
   if(sp&&sp.call)await phoneCall(sp.call);
-  W.vc=0;
-  const v=sp?sp.make():genVisitor();
+  const v=makeQueuedVisitor(sp);
   if(sp){sp.done=true;if(sp.call)v.called=true}
-  W.v=v;W.sel=[];
+  W.v=v;W.sel=[];W.lastBad=null;
   await enter(v);
   W.busy=false;
 }
@@ -173,6 +187,7 @@ async function enter(v){
   for(const w of mountDocs(v)){car.appendChild(w);SND.play('rustle');await sleep(160)}
   stampsEnabled(true);
   await sp;
+  if(v.askAlways)showAsk();
   if(v.bribe&&v.bribe.upfront)setTimeout(()=>{if(W.v===v&&!v.done)offerBribe(v)},700);
   tut(1);
   if(W.hintStep>=0&&W.hintStep<3){hint(['Листайте документы влево-вправо. Включите «Сверку» и нажмите на ФИО в заявлении, потом на ФИО в паспорте.','Сравнивайте не только ФИО: дату «Действителен до» сверяйте с сегодняшней датой (она в шапке и в регламенте). Пустая графа подписи — тоже нарушение.','Решили? Перетащите печать «Принято» или «Отказано» на графу «Отметка МФЦ» в заявлении.'][W.hintStep]);W.hintStep++}

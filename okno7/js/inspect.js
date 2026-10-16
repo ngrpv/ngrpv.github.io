@@ -76,14 +76,15 @@ function pleadLine(v,rule){if(v.pleadFor)return v.pleadFor(rule);if(v.named||v.s
 const CONFESS=['Ладно. Ваша правда. Я надеял{ся|ась}, не заметите.','Да, это не моё. Соседка дала, сказала — прокатит.','Признаю. Не ругайте, и так тошно.','Ну да. Ну ошибся. Ошиблась. Неважно. Признаю.','Мне в интернете сказали, что у вас не проверяют.'];
 const DODGE=['Не знаю. Мне так выдали.','Это не ко мне вопрос, это к ним.','А в соседнем окне такое принимают!','Я не понимаю, что вы от меня хотите.','Мне некогда разбираться, я с шести утра стою.'];
 const ASKS=['Это что такое?','Объясните, пожалуйста.','Как вы это объясните?','И откуда это?'];
-function showAsk(){const b=$('#b-ask');if(!W||!W.v||W.v.done||W.v.asked)return;b.hidden=false}
+function showAsk(){const b=$('#b-ask');if(!W||!W.v||W.v.done||W.v.asked)return;b.textContent=W.v.askLabel||'Спросить';b.hidden=false}
 function hideAsk(){$('#b-ask').hidden=true}
 $('#b-ask').onclick=async()=>{
   const v=W&&W.v;if(!v||v.done||v.asked)return;v.asked=true;hideAsk();
   const rule=W.lastBad,r=RULES[rule];W.time=Math.min(W.time+10,1079);hud();
-  toast('Вы: «'+pick(ASKS)+'»',null,1400);await sleep(900);if(W.v!==v||v.done)return;
+  toast('Вы: «'+(v.askPrompt||pick(ASKS))+'»',null,2200);await sleep(900);if(W.v!==v||v.done)return;
   const out=interrogate(v,rule);
-  if(out.kind==='fix'){rerenderDocs(v);await say(sx(out.line,v.sex),'happy',v);toast('Исправлено на месте: '+r.reason.toLowerCase(),'good',2200);SND.play('rustle')}
+  if(out.refreshDocs&&out.kind!=='fix')rerenderDocs(v);
+  if(out.kind==='fix'){const fixed=RULES[out.rule||rule]||r;rerenderDocs(v);await say(sx(out.line,v.sex),'happy',v);toast(fixed?'Исправлено на месте: '+fixed.reason.toLowerCase():'Заявление исправлено','good',2200);SND.play('rustle')}
   else if(out.kind==='bribe'){await say(sx(out.line,v.sex),'sly',v);offerBribe(v)}
   else if(out.kind==='confess'){await say(sx(out.line,v.sex),'sad',v);toast('Признание: отказ не вызовет жалобы',null,2200)}
   else await say(sx(out.line,v.sex),out.expr||'neutral',v);
@@ -91,6 +92,7 @@ $('#b-ask').onclick=async()=>{
 function interrogate(v,rule){
   const r=RULES[rule],roll=rnd();
   if(v.special==='shopper')return{kind:'dodge',line:'Обычный гражданин на такой вопрос пожал бы плечами.',expr:'sly'};
+  if(v.onAsk)return v.onAsk(rule);
   if(v.askLine)return{kind:'dodge',line:v.askLine,expr:'neutral'};
   if(v.callWant)return{kind:'dodge',line:pick(v.lines.plead),expr:'angry'};
   if(r&&r.fix&&roll<.45){const line=r.fix(v);if(line){recheck(v);v.noted.delete(rule);return{kind:'fix',line}}}
