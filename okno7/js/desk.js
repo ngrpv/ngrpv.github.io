@@ -1,6 +1,6 @@
 'use strict';
 /* Бумаги на столе: независимая раскладка, верхний лист и место для чтения. */
-function uiMode(){return store.get('interfaceMode')==='classic'?'classic':'free'}
+function uiMode(){return store.get('interfaceMode')==='free'?'free':'classic'}
 function freeDesk(){return uiMode()==='free'}
 function setDeskFocus(on){
   on=!!on&&freeDesk();

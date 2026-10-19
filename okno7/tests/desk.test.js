@@ -4,7 +4,7 @@ function deskHarness(){
   const classes=()=>({values:new Set(),toggle(k,on){if(on)this.values.add(k);else this.values.delete(k)}});
   const car={clientWidth:390,clientHeight:460,children:[],addEventListener(){}};
   const tabs=Array.from({length:3},()=>({classList:classes(),setAttribute(){}}));
-  const context={document:{},store:{get:()=>null},$:s=>s==='#car'?car:{},$$:()=>tabs,clamp:(x,a,b)=>Math.max(a,Math.min(b,x)),setTimeout(){}};
+  const context={document:{},store:{get:()=>'free'},$:s=>s==='#car'?car:{},$$:()=>tabs,clamp:(x,a,b)=>Math.max(a,Math.min(b,x)),setTimeout(){}};
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../js/desk.js'),'utf8')+'\nthis.api={deskPosition,raiseDocument,placeDocument};',context);
   const paper=(z)=>({parentElement:car,style:{zIndex:z},dataset:{},classList:classes(),offsetWidth:350,offsetHeight:600});
   car.children=[paper(3),paper(2),paper(1)];return{...context.api,car,tabs};
