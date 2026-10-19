@@ -27,9 +27,11 @@ function buildDocs(v){
   if(A('R_SNILS'))makeSnils(v);
   if(A('R_ZHIV'))v.docs.zhiv={fio:{...fio},birth:v.birth,sex:v.sex,issued:addDays(T,-(A('R_ZHIV_OLD')?ri(0,3):ri(0,9))),stamp:A('R_TRI')?'round':pick(['round','tri']),scol:'violet',doc:A('R_DOCTOR')?P().doctor:pick(DOCTORS),dsig:ri(1,1e6),no:ri(100,9999)};
 }
+/* мелкие «атрибутные» нарушения: к концу кампании встречаются реже, чтобы не копилась рутина */
+const ATTR_RULES=['R_INK','R_CAPS','R_MIR','R_VPN','R_PHONE','R_EMAIL','R_NOTIFY','R_PAYTIME','R_SUM','R_GOSU','R_SERVICE','R_REG','R_DOCTOR','R_TRI'];
 function pickFlaws(opt){
   if(opt.flaws)return opt.flaws;const flaws=[];const act=activeIds().filter(id=>!(opt.named&&NAMED_SKIP.includes(id)));
-  if(act.length&&chance(opt.pFlaw!=null?opt.pFlaw:.38+S.day*.025+diff().flaw)){const w={};act.forEach(id=>{w[id]=S.run.rules[id]===S.day?3:1});flaws.push(wpick(w));
+  if(act.length&&chance(opt.pFlaw!=null?opt.pFlaw:.38+S.day*.025+diff().flaw)){const w={};act.forEach(id=>{let x=S.run.rules[id]===S.day?3:1;if(S.day>=8&&ATTR_RULES.includes(id)&&S.run.rules[id]<=S.day-4)x*=.5;w[id]=x});flaws.push(wpick(w));
     if(S.day>=diff().dbl[0]&&chance(diff().dbl[1])){const id2=wpick(w);if(id2!==flaws[0])flaws.push(id2)}}
   return flaws;
 }
@@ -53,13 +55,23 @@ function genVisitor(opt){
     let svc=opt.service||pick(A.services);if(!opt.service&&isActive('R_SERVICE')&&svc===P().banned){const alt=A.services.filter(x=>x!==svc);svc=alt.length?pick(alt):'Справка о составе семьи'}
     v.service=svc;v.place=opt.place||pick(TOWNS);
     v.reg=opt.reg||(isActive('R_REG')||chance(.6)?(REGION.includes(v.place)&&chance(.6)?v.place:pick(REGION)):pick(REG_OUT));
+    const storyState=opt.named&&opt.arc&&Object.hasOwn(ARC_STORIES,opt.arc)?S.arcs[opt.arc]:null;
+    const identity=storyState&&storyState.identity;
+    if(identity){
+      v.birth=new Date(identity.birth);v.pass=identity.pass;v.snilsNo=identity.snils;v.place=identity.place;v.reg=identity.reg;
+      Object.assign(v.face,identity.face,opt.face);v.photoFace={...v.face};
+    }else if(storyState&&!REGION.includes(v.reg))v.reg=REGION[0];
     buildDocs(v);
+    if(identity)Object.assign(v.docs.passport,{issued:new Date(identity.issued),until:new Date(identity.until)});
+    else if(storyState)storyState.identity={birth:+v.birth,pass:v.pass,snils:v.snilsNo,place:v.place,reg:v.reg,face:{...v.face},
+      issued:+v.docs.passport.issued,until:+v.docs.passport.until};
     const flaws=pickFlaws(opt);
     v.flaws=flaws.filter(id=>RULES[id].inject(v)!==false);
     if(opt.after)opt.after(v);
     v.viol=activeIds().filter(id=>RULES[id].check(v));
     const L=k=>(A[k]&&A[k].length?A[k]:['Здравствуйте.']);
     v.lines={intro:sx(opt.intro||seasonIntro(arch)||pick(L('intro')),sex),plead:A.plead,ok:A.ok,no:A.no};
+    if(!v.viol.length&&!opt.intro&&!opt.named&&chance(.35))v.lines.intro+=' '+pick(QUIRKS);
     if(!opt.noBribe&&v.viol.length){const bp={biznes:[.6,'cash',[3000,5000],true],babushka:[.45,'food',[0,0],false],worker:[.25,'cash',[1000,1000],false],student:[.15,'cash',[500,500],false],it:[.1,'cash',[2000,2000],false],courier:[.1,'cash',[500,500],false]}[arch];if(bp&&chance(bp[0]))v.bribe={kind:bp[1],amount:pick(bp[2]),upfront:bp[3],pie:'с капустой'}}
     return v;
   });
@@ -82,8 +94,15 @@ function planSpecials(){
   S.run.arcs.forEach(id=>{(ARCS[id].visits(day,S.arcs[id])||[]).forEach(x=>list.push({...x,arc:id}))});
   if(S.flags&&S.flags.envDay===day)list.push({make:makeEnvelope});
   if(G.event==='shopper')list.push({make:makeShopper,idx:ri(2,4)});
-  const map={},taken=new Set();
-  list.filter(x=>x.idx!=null).forEach(x=>{let i=x.idx;while(taken.has(i))i++;taken.add(i);map[i]=x});
-  list.filter(x=>x.idx==null).forEach(x=>{const free=[0,2,3,4,5,6].filter(i=>!taken.has(i));const i=free.length?pick(free.slice(0,3)):Math.max(...taken)+1;taken.add(i);map[i]=x});
+  /* эпизодические случаи занимают места внутри плана; не поместились — переносятся на следующий день */
+  const room=Math.max(1,(G&&G.plan||3)-1)+(day===12?1:0);
+  (S.run.cases||[]).filter(c=>c.day===day).sort((a,b)=>(b.id==='wanted')-(a.id==='wanted')).forEach(c=>{
+    if(c.id!=='wanted'&&list.length>=room){if(c.day<12)c.day++;return}
+    const C=CASES[c.id];if(C)list.push({make:()=>C.make(c),call:C.call||null,case:c.id})});
+  /* сюжетные посетители занимают места внутри плана: после выполнения плана их уже не остаётся */
+  const map={},taken=new Set(),plan=Math.max(1,G&&G.plan||0);
+  const slot=want=>{const top=Math.min(want,plan-1);for(let i=top;i>=0;i--)if(!taken.has(i))return i;let i=top+1;while(taken.has(i))i++;return i};
+  list.filter(x=>x.idx!=null).forEach(x=>{const i=slot(x.idx);taken.add(i);map[i]=x});
+  list.filter(x=>x.idx==null).forEach(x=>{const free=Array.from({length:plan},(_,i)=>i).filter(i=>!taken.has(i));const i=free.length?pick(free.slice(0,3)):Math.max(-1,...taken)+1;taken.add(i);map[i]=x});
   return map;
 }

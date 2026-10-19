@@ -15,7 +15,7 @@ const UV_MARK='<i class="uv-wm"><svg viewBox="0 0 100 100"><circle cx="50" cy="5
 const snilsEra=()=>inPool('R_SNILSNUM')&&S.run.rules.R_SNILS&&S.day>=S.run.rules.R_SNILS;
 function renderDocs(v){
   v.fields={};let n=0;
-  const F=(kinds,value,html,cls)=>{const id='f'+(n++);v.fields[id]={kinds,value};return `<span class="f ${cls||''}" data-fid="${id}">${html}</span>`};
+  const F=(kinds,value,html,cls)=>{const id='f'+(n++);v.fields[id]={kinds,value};const label=fieldLabel(kinds)+(typeof value==='string'&&!kinds.some(k=>['sig','photo','stamp','holo','qr','font'].includes(k))?': '+value:'');return `<span class="f ${cls||''}" data-fid="${id}" role="button" tabindex="0" aria-label="${esc(label)}">${html}</span>`};
   const tilt=()=>`--tilt:${(Math.random()*2.2-1.1).toFixed(2)}deg`;
   const out=[];const d=v.docs;
   const a=d.application,ic=INK[a.ink],H=t=>`<span class="hand">${esc(t)}</span>`;

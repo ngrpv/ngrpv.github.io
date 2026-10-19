@@ -169,7 +169,14 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid #ffd400;outline-
 .stampbtn:active{transform:translateY(2px);box-shadow:0 1px 0 #5d6364}
 .stampbtn[disabled]{opacity:.45}
 .nextbtn{flex:1;border:none;border-radius:8px;background:var(--stamp-red);color:#fff;font:400 clamp(14px,4.4vw,19px) var(--f-display);letter-spacing:.02em;box-shadow:0 4px 0 #6d1219;padding:6px}
+.nextbtn{min-width:0;overflow:hidden}
+.actions:has(#b-lens:not([hidden])) #b-next{font-size:clamp(11px,3.4vw,15px);letter-spacing:0}
 .nextbtn:active{transform:translateY(3px);box-shadow:0 1px 0 #6d1219}
+.actions.fin #b-insp,.actions.fin #b-lens{display:none}
+.actions.fin #b-next{flex:1 1 0;min-width:0;font-size:clamp(11px,3.2vw,15px);letter-spacing:0;padding-inline:2px}
+.endbtn{flex:0 0 clamp(62px,18vw,76px);min-width:0;margin-left:6px;background:#4a5058;box-shadow:0 4px 0 #2a2e33;font:700 clamp(11px,3.1vw,13px)/1.1 var(--f-narrow);text-transform:uppercase;letter-spacing:.02em;padding-inline:2px}
+.endbtn:active{box-shadow:0 1px 0 #2a2e33}
+.endbtn[hidden]{display:none}
 
 /* ---------- DOCUMENTS ---------- */
 .doc{position:relative;transform:rotate(var(--tilt,0deg));font-family:var(--f-doc);font-size:12.5px;line-height:1.35;color:var(--ink);box-shadow:0 1px 0 rgba(0,0,0,.08),0 6px 14px rgba(30,35,35,.28)}
@@ -180,6 +187,8 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid #ffd400;outline-
 .inspect .f{cursor:pointer;outline:1.5px dashed rgba(180,34,47,.45);outline-offset:1px}
 .f.sel{background-image:linear-gradient(transparent 8%,var(--hl) 8% 92%,transparent 92%);background-repeat:no-repeat;animation:hl .25s ease-out both}
 @keyframes hl{from{background-size:0 100%}to{background-size:100% 100%}}
+.f.bt-ok::after,.f.bt-bad::after{content:'✓';display:inline-block;margin-left:3px;padding:0 3px;border-radius:7px;font:700 10px/14px var(--f-ui);color:#fff;background:#2e7a48;vertical-align:middle;letter-spacing:0}
+.f.bt-bad::after{content:'?';background:#c07a14}
 .f.okflash{box-shadow:0 0 0 2px rgba(46,122,72,.7)}
 .pen{position:absolute;left:-7px;right:-7px;top:-6px;bottom:-6px;width:calc(100% + 14px);height:calc(100% + 12px);pointer-events:none;overflow:visible;z-index:3}
 .pen path{fill:none;stroke:#d0142a;stroke-width:2.2;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;animation:draw .5s ease-out forwards}
@@ -431,6 +440,8 @@ input:focus-visible+.ck{outline:3px solid #ffd400}
 .dilemma p{margin:0 0 10px;font:13.5px/1.45 var(--f-ui)}
 .dl-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .dl-opts button{display:flex;flex-direction:column;gap:2px;text-align:left;border:1.5px solid var(--ink);border-radius:6px;background:#fffdf6;padding:9px 10px;font:14px var(--f-ui)}
+.dl-opts button:last-child:nth-child(odd){grid-column:1/-1}
+.dl-opts button:disabled{opacity:.4}
 .dl-opts button small{font:12px var(--f-ui);color:var(--ink-soft)}
 .dl-opts button[aria-pressed="true"]{background:var(--ink);color:#fff}
 .dl-opts button[aria-pressed="true"] small{color:#d9d6cc}
@@ -563,3 +574,73 @@ input:focus-visible+.ck{outline:3px solid #ffd400}
 /* Длинные реплики остаются в пределах сцены и прокручиваются. */
 .bubble{box-sizing:border-box;display:flex;max-width:64%;max-height:calc(100% - 110px);cursor:pointer}
 .bubble p{min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+
+/* Подвижный стол: сами бумаги двигаются под пальцем, короткое касание выбирает поле. */
+.scene{transition:height .32s ease}
+.desk-focus .scene{height:112px}
+.desk-focus .notice,.desk-focus .poster,.desk-focus .wclock,.desk-focus .glass-label{display:none}
+.desk-focus .led{top:5px;left:7px;padding:3px 5px;font-size:7px}
+.desk-focus .bubble{top:34px;max-width:66%;max-height:60px;padding:5px 8px;font-size:12px}
+.desk-focus .citizen{height:92%;right:2%;bottom:10px}
+.desk-focus .askbtn{bottom:18px;left:auto;right:5px;padding:5px 9px 5px 27px;font-size:12px}
+.desk-handle{flex:none;display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:32px;padding:5px 10px;border:0;border-top:2px solid #dadddc;border-bottom:1px solid #8b9290;background:linear-gradient(#c9ceca,#a4afaa);color:var(--ink-soft);font:12px var(--f-ui)}
+.desk-handle i{width:36px;height:4px;border-radius:4px;background:#586960}
+.tabs{display:none}
+.carousel{position:relative;display:block;overflow:hidden;padding:0;isolation:isolate;scroll-snap-type:none;touch-action:none}
+.carousel::after{display:none}
+.docwrap{position:absolute;width:calc(100% - 36px);max-width:none;min-height:0;display:block;padding:4px 5px 12px;overflow:visible;scroll-snap-align:none;touch-action:none;cursor:grab}
+.docwrap.dragging{filter:drop-shadow(0 12px 9px rgba(30,35,35,.3))}
+.docwrap.dragging,.docwrap.dragging *{cursor:grabbing}
+.docbody{overflow:visible;touch-action:none}
+.docbody .doc{overflow-wrap:anywhere}
+.docbody .pp-data{min-width:0}
+.docbody .app-gosu .f{display:flex;flex-wrap:wrap;column-gap:5px;row-gap:3px}
+.docbody .gbox{margin-right:0}
+.docwrap.ret,.docwrap.ret .docbody{touch-action:none}
+.docwrap [data-fid]:focus-visible{outline:2px solid #a37118;outline-offset:2px}
+.comparison{flex:none;position:relative;z-index:6;padding:7px 11px 9px;background:var(--paper);background-image:var(--noise);border-top:2px solid #8b947f;box-shadow:0 -3px 10px rgba(30,35,35,.12)}
+.comparison-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;font:700 11px var(--f-narrow);text-transform:uppercase;letter-spacing:.08em}
+.comparison-head button{min-height:30px;border:0;background:none;text-decoration:underline;color:var(--ink-soft);font:12px var(--f-ui);padding:2px 4px}
+.comparison-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.comparison-card{min-width:0;padding:6px 8px;background:#fffdf4;border:1px solid #d6cbb0}
+.comparison-card>b{display:block;margin-bottom:3px;font:10px var(--f-narrow);text-transform:uppercase;color:var(--ink-soft);letter-spacing:.02em}
+.comparison-fragment{overflow-wrap:anywhere;font:14px/1.25 var(--f-doc);max-height:76px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.comparison-fragment.hand{font:15px/1.25 var(--f-hand)}
+.comparison-fragment mark{background:#f4ceae;color:#772b22;padding:0 1px;border-radius:2px}
+.comparison-empty{display:flex;align-items:center;color:var(--ink-soft);font:12px/1.3 var(--f-ui);border-style:dashed}
+.comparison-art{height:76px;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.comparison-art>span,.comparison-art>div{position:static!important;display:block;max-width:100%;max-height:76px;background:none}
+.comparison-art svg{display:block;max-width:100%;max-height:76px;width:auto;height:76px}
+.comparison-art .sig{width:110px!important;height:50px!important}
+.comparison-art .holo-i{position:relative;width:54px;height:54px;display:block}
+.comparison-face>div{height:76px}
+.comparison-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:6px;font:12px/1.3 var(--f-ui)}
+.comparison-foot span{min-width:0}
+.comparison-foot button{flex:none;min-height:40px;min-width:80px;padding:7px 12px;border:0;border-radius:4px;background:var(--wall-deep);color:var(--paper);font:700 13px var(--f-ui)}
+.comparison-foot button:disabled{opacity:.5}
+.comparison[data-result="bad"] .comparison-foot span{color:var(--stamp-red);font-weight:700}
+.comparison[data-result="good"] .comparison-foot span{color:#2e7a48}
+@media(max-height:700px){.desk-focus .scene{height:100px}.comparison{padding-top:4px;padding-bottom:5px}.comparison-head{margin-bottom:2px}.comparison-art{height:58px}.comparison-fragment{max-height:58px}}
+@media(prefers-reduced-motion:reduce){.scene{transition:none}}
+
+/* Настройки доступны и в меню, и во время смены. */
+.hud-r{flex-direction:row;gap:6px}
+.hud-money{display:flex;flex-direction:column;align-items:flex-end}
+.settingsbtn{flex:none;position:relative;width:32px;min-height:36px;border:0;border-radius:5px;background:rgba(255,255,255,.08);color:var(--whitewash);font:23px var(--f-ui);padding:0}
+.settingsbtn::after{content:"";position:absolute;inset:-4px}
+.mode-options{display:grid;gap:10px;margin-top:12px}
+.mode-option{display:flex;flex-direction:column;gap:5px;text-align:left;border:2px solid #bab5a5;border-radius:6px;background:#fffdf5;padding:12px 14px;color:var(--ink)}
+.mode-option b{font:700 16px var(--f-ui)}
+.mode-option span{font:14px/1.4 var(--f-ui);color:var(--ink-soft)}
+.mode-option[aria-checked="true"]{border-color:var(--wall-deep);background:#eee9d0;box-shadow:inset 4px 0 0 var(--wall-deep)}
+.modal .settings-note,.modal .settings-status{margin-top:12px;font:13px/1.4 var(--f-ui);color:var(--ink-soft)}
+.settings-status:empty{display:none}
+
+/* Классический интерфейс: карусель и прокрутка внутри листа. */
+.classic-ui .desk-handle,.classic-ui .comparison{display:none!important}
+.classic-ui .tabs{display:flex;min-height:32px;padding:8px 12px 0;gap:6px}
+.classic-ui .carousel{display:flex;gap:14px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;padding:8px 7%;touch-action:auto}
+.classic-ui .carousel::after{display:block;flex:0 0 1px}
+.classic-ui .docwrap{position:static;left:auto!important;top:auto!important;flex:0 0 86%;width:auto;max-width:390px;display:block;overflow-y:auto;overflow-x:hidden;padding:4px 5px 14px;scroll-snap-align:center;touch-action:auto;cursor:auto;filter:none}
+.classic-ui .docbody{touch-action:auto}
+.classic-ui .docwrap.ret,.classic-ui .docwrap.ret .docbody{touch-action:pan-x}

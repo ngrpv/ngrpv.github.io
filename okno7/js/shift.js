@@ -55,6 +55,7 @@ let W=null,clockI=0;
 function openWindow(){
   W={time:540,processed:0,errors:0,fines:0,bribes:0,idx:0,v:null,busy:false,lunchDone:false,notes:[],pirozhki:false,running:true,paused:0,sel:[],insp:false,ended:false,hintStep:-1,tut:S.day===1&&!store.get('tutDone')?0:-1,specials:S.daily?withSeed(hash(S.daily.seed,S.day),planSpecials):planSpecials(),ret:null,pend:null,blogNote:false};
   show('s-work');
+  applyInterfaceMode();
   $('#b-ok').innerHTML=dStamp('ПРИНЯТО','#4b3fa3');$('#b-no').innerHTML=dStamp('ОТКАЗАНО','#b4222f');
   $('#b-book').innerHTML=`<svg viewBox="0 0 26 24"><path d="M2 4 Q8 2 13 5 Q18 2 24 4 V21 Q18 19 13 22 Q8 19 2 21Z" fill="#fbf8f0" stroke="#25242b" stroke-width="1.6" stroke-linejoin="round"/><path d="M13 5 V22" stroke="#25242b" stroke-width="1.4"/><path d="M5 8 h5 M5 11 h5 M5 14 h4 M16 8 h5 M16 11 h5" stroke="#8a8790" stroke-width="1.2"/></svg>Регламент`;
   $('#b-insp').innerHTML=`<svg viewBox="0 0 26 24"><circle cx="10" cy="10" r="7" fill="rgba(180,220,255,.5)" stroke="#25242b" stroke-width="2"/><path d="M15 15 L23 22" stroke="#25242b" stroke-width="3.4" stroke-linecap="round"/></svg>Сверка`;
@@ -64,7 +65,7 @@ function openWindow(){
   if(!$('#wticks').childElementCount){let t='';for(let i=0;i<12;i++){const a=i*30*Math.PI/180;t+=`<line x1="${22+16*Math.sin(a)}" y1="${22-16*Math.cos(a)}" x2="${22+18*Math.sin(a)}" y2="${22-18*Math.cos(a)}"/>`}$('#wticks').innerHTML=t}
   $('#cit').className='citizen out-r';$('#cit').innerHTML='';
   $('#car').innerHTML='';$('#tabs').innerHTML='';$('#env').hidden=true;bubble(null);hideAsk();
-  setInsp(false);setLens(null,true);setEmpty(true);showReturn(false);
+  setInsp(false);setLens(null,true);setEmpty(true);showReturn(false);setDeskFocus(false);
   $('#blinds').classList.remove('down');
   $('#scene').classList.toggle('dark',G.event==='dark');$('#scene').dataset.w=G.season?G.season.w:'sun';$('#blogger').hidden=G.event!=='blogger';
   led(`А-${pad3(S.ticket)} → ОКНО 7`);
@@ -76,27 +77,39 @@ function openWindow(){
 const GPT_FACE='<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3" fill="#fff"/><circle cx="9" cy="12" r="2" fill="#1b2b4a"/><circle cx="15" cy="12" r="2" fill="#1b2b4a"/><path d="M9 16 h6" stroke="#1b2b4a" stroke-width="1.5"/><path d="M12 5 V2" stroke="#fff" stroke-width="1.5"/><circle cx="12" cy="2" r="1.3" fill="#ff5a5a"/></svg>';
 const pad3=n=>String(n).padStart(3,'0');
 function led(t){$('#led').textContent=t}
+/* скорость часов — игровых минут за реальную секунду; зависит от сложности и события дня */
+const clockSpeed=()=>diff().clk*(G&&G.clockMul||1);
+/* часы стоят, пока игрок не может действовать: окна и справочники, появление и уход посетителя */
+function clockPaused(){
+  if(W.paused>0||document.hidden)return true;
+  if(!$('#modal').hidden||!$('#sheet').hidden)return true;
+  const v=W.v;return!!(v&&(v.done||!v.arrived));
+}
 function tickClock(){
   if(!W||!W.running)return;
-  if(W.paused>0||document.hidden)return;
-  W.time+=0.5;
+  const now=Date.now(),dt=Math.min(now-(W.tickAt||now),500);W.tickAt=now;
+  if(clockPaused())return;
+  const before=Math.floor(W.time);
+  W.time+=clockSpeed()*dt/1000;
   if(!W.lunchDone&&W.time>=780&&W.time<840&&!W.v&&!W.busy){callLunch();}
   if(W.time>=1080){W.time=1080;hud();endShift();return}
-  if(Math.floor(W.time*2)%2===0)hud();
+  if(Math.floor(W.time)!==before)hud();
 }
 function hud(){
   if(!W)return;const t=Math.floor(W.time),h=Math.floor(t/60),m=t%60;
   $('#h-clock').textContent=`${pad(h)}:${pad(m)}`;
   $('#hh').setAttribute('transform',`rotate(${(h%12+m/60)*30} 22 22)`);$('#mh').setAttribute('transform',`rotate(${m*6} 22 22)`);
   $('#h-day').textContent=`День ${S.day}`;$('#h-date').textContent=`${WD[G.today.getDay()]} ${pad(G.today.getDate())}.${pad(G.today.getMonth()+1)}${G.season?' · '+G.season.weather.s:''}`;
-  $('#h-money').textContent=money(S.money+W.bribes);$('#h-plan').textContent=`план ${W.processed}/${G.plan}`;
+  $('#h-money').textContent=money(S.money+W.bribes);$('#h-plan').textContent=`план ${W.processed}/${G.plan}${W.processed>=G.plan?' ✓':''}`;
   const m1=(id,val,bad)=>{const e=$(id);e.querySelector('u').style.width=clamp(val,0,100)+'%';e.classList.toggle('bad',bad)};
   renderQueue();
   m1('#m-loy',S.loyalty,S.loyalty<30);m1('#m-com',S.complaints,S.complaints>60);m1('#m-sus',S.suspicion,S.suspicion>50);
 }
 function setEmpty(on){const e=$('#desk-empty');e.hidden=!on;if(on)e.innerHTML=`<svg class="mug" viewBox="0 0 64 64"><ellipse cx="30" cy="54" rx="22" ry="5" fill="rgba(0,0,0,.15)"/><path d="M14 18 h32 v26 a10 10 0 0 1 -10 10 h-12 a10 10 0 0 1 -10 -10z" fill="#fbf8f0" stroke="#25242b" stroke-width="2"/><path d="M46 24 a8 8 0 0 1 0 16" fill="none" stroke="#25242b" stroke-width="2.5"/><ellipse cx="30" cy="18" rx="16" ry="4" fill="#6b4226" stroke="#25242b" stroke-width="2"/><text x="30" y="38" text-anchor="middle" font-family="PT Sans Narrow,sans-serif" font-weight="700" font-size="7.5" fill="#b4222f">ЛУЧШИЙ</text><text x="30" y="46" text-anchor="middle" font-family="PT Sans Narrow,sans-serif" font-weight="700" font-size="7.5" fill="#b4222f">СОТРУДНИК</text><path d="M24 12 q3 -5 0 -9 M33 12 q3 -5 0 -9" stroke="#aaa" stroke-width="1.5" fill="none"/></svg><span>Окно свободно. В очереди ещё человек ${Math.max(3,30-W.processed*2-(W.time-540)/40|0)}.</span>`}
-function showNext(on){$('#b-next').hidden=!on;$('#stamps').hidden=on||!!(W&&W.ret)}
-function showReturn(on){$('#b-ret').hidden=!on;$('#tray').classList.toggle('on',on);$('#retcue').hidden=!on;if(on){$('#stamps').hidden=true;$('#b-next').hidden=true}}
+/* смену можно закончить, когда план выполнен и все назначенные сюжетные посетители уже были у окна */
+function canFinish(){return!!(W&&!W.ended&&W.processed>=G.plan&&Object.values(W.specials).every(sp=>sp.done))}
+function showNext(on){const fin=on&&canFinish();$('#b-next').hidden=!on;$('#b-end').hidden=!fin;$('.actions').classList.toggle('fin',fin);$('#stamps').hidden=on||!!(W&&W.ret)}
+function showReturn(on){$('#b-ret').hidden=!on;$('#tray').classList.toggle('on',on);$('#retcue').hidden=!on;if(on){$('#stamps').hidden=true;$('#b-next').hidden=true;$('#b-end').hidden=true;$('.actions').classList.remove('fin')}}
 function stampsEnabled(on){$('#b-ok').disabled=!on;$('#b-no').disabled=!on}
 function hint(t){const h=$('#hint');if(!t){h.hidden=true;h.classList.remove('top');return}$('#hint-t').textContent=t;h.hidden=false}
 $('#hint-x').onclick=()=>{hint(null);if(W&&W.tut>=0){W.tut=-1;store.set('tutDone',true);$$('.coach').forEach(e=>e.classList.remove('coach'))}};
@@ -105,7 +118,7 @@ const TUT=[
   {t:'Нажмите «Следующий!» — пригласите первого посетителя.',el:()=>$('#b-next')},
   {t:'Включите «Сверку»: в этом режиме данные в документах сравниваются между собой.',el:()=>$('#b-insp')},
   {t:'Нажмите ФИО в заявлении.',el:()=>fieldEl(0,'fio')},
-  {t:'Теперь ФИО в паспорте: листните документы влево или нажмите вкладку «Паспорт».',el:()=>fieldEl(1,'fio')},
+  {t:'Теперь выберите ФИО в паспорте и нажмите «Сверить». Бумаги можно двигать по столу; касание поднимает лист наверх.',el:()=>fieldEl(1,'fio')},
   {t:'Нашли расхождение — перетащите печать «Отказано» на графу «Отметка МФЦ» в заявлении. Всё сходится — «Принято».',el:()=>$('#stamps')},
   {t:'Смахните документы вверх, в лоток. Или нажмите «Вернуть».',el:()=>$('#b-ret')},
   {t:'Дальше — сами. Сроки сверяйте с сегодняшней датой в шапке, пункты — с регламентом.',el:()=>$('#b-book'),end:true}
@@ -114,7 +127,7 @@ function fieldEl(i,kind){const v=W&&W.v;if(!v||!v.docEls||!v.docEls[i])return nu
 function tut(step){
   if(!W||W.tut==null||W.tut<0||step<W.tut)return;W.tut=step;$$('.coach').forEach(e=>e.classList.remove('coach'));
   const s=TUT[step];if(!s){W.tut=-1;hint(null);return}
-  const el=s.el();if(el)el.classList.add('coach');hint(s.t);$('#hint').classList.add('top');
+  const el=s.el();if(el)el.classList.add('coach');hint(step===3&&!freeDesk()?'Теперь ФИО в паспорте: листните документы влево или нажмите вкладку «Паспорт».':s.t);$('#hint').classList.add('top');
   if(s.end){store.set('tutDone',true);setTimeout(()=>{if(W&&W.tut===step){$$('.coach').forEach(e=>e.classList.remove('coach'));hint(null);W.tut=-1}},6000)}
 }
 
@@ -148,6 +161,7 @@ function setFace(v,expr){$('#cit').innerHTML=faceSVG(v.face,expr);}
 
 /* --- вызов следующего --- */
 $('#b-next').onclick=()=>callNext();
+$('#b-end').onclick=()=>{if(!W||W.busy||W.ended||!canFinish())return;W.early=true;showNext(false);endShift()};
 async function callNext(){
   if(!W||W.busy||W.ended)return;W.busy=true;showNext(false);stampsEnabled(false);
   if(!W.lunchDone&&W.time>=780){await lunch()}
@@ -157,7 +171,7 @@ async function callNext(){
   if(sp&&sp.call)await phoneCall(sp.call);
   const v=makeQueuedVisitor(sp);
   if(sp){sp.done=true;if(sp.call)v.called=true}
-  W.v=v;W.sel=[];W.lastBad=null;
+  W.v=v;W.freeLayout=null;clearSel();W.lastBad=null;setDeskFocus(false);
   await enter(v);
   W.busy=false;
 }
@@ -170,9 +184,27 @@ function mountDocs(v,keep){
   const docs=renderDocs(v);v.docEls=[];
   const car=$('#car'),idx=keep?activeDocIdx():0;car.innerHTML='';
   $('#tabs').innerHTML=docs.map((d,i)=>`<button class="tab${i===idx?' on':''}" data-i="${i}">${d.label}</button>`).join('');
-  return docs.map((d,i)=>{const w=document.createElement('div');w.className='docwrap'+(keep?' still':'');w.dataset.k=d.k;w.innerHTML=d.html;
+  const walls=docs.map((d,i)=>{const w=document.createElement('div');w.className='docwrap'+(keep?' still':'');w.dataset.k=d.k;w.innerHTML=d.html;
     if(G.event==='dark'){const sh=document.createElement('div');sh.className='shade '+(chance(.5)?'top':'bot');w.querySelector('.doc').appendChild(sh)}
-    v.docEls.push(w);return w});
+    prepareDocument(w,d.label);v.docEls.push(w);return w});
+  applySver(v);
+  return walls;
+}
+/* «ГосСверка (бета)»: значок ✓ или «?» у ФИО, даты рождения, паспорта и СНИЛС. Е и Ё не различает, остального не видит. */
+const SVER_KINDS=['fio','birth','passnum','snilsnum'];
+const svNorm=x=>String(x).toLowerCase().replace(/ё/g,'е').replace(/\s+/g,' ').trim();
+function applySver(v){
+  if(!(S.upg&&S.upg.sver))return;
+  const norm=svNorm;
+  const items=[];
+  v.docEls.forEach(w=>$$('[data-fid]',w).forEach(el=>{const f=v.fields[el.dataset.fid];if(f&&typeof f.value==='string'){const k=SVER_KINDS.find(k=>f.kinds.includes(k));if(k)items.push({el,k,val:norm(f.value),pass:w.dataset.k==='pass'})}}));
+  if(G.event==='glitch'){items.filter(i=>!i.pass).forEach(i=>i.el.classList.add('bt-ok'));return}
+  SVER_KINDS.forEach(k=>{
+    const base=items.find(i=>i.k===k&&i.pass)||items.find(i=>i.k===k);
+    if(!base)return;
+    items.filter(i=>i.k===k&&i!==base&&!i.pass).forEach(i=>i.el.classList.add(i.val===base.val?'bt-ok':'bt-bad'));
+    if(!base.pass)base.el.classList.add(items.some(i=>i.k===k&&i!==base&&i.val!==base.val)?'bt-bad':'bt-ok');
+  });
 }
 function activeDocIdx(){const t=$$('#tabs .tab');const i=t.findIndex(x=>x.classList.contains('on'));return i<0?0:i}
 async function enter(v){
@@ -180,11 +212,14 @@ async function enter(v){
   await sleep(450);
   const sp=say(v.lines.intro,'neutral',v);
   if(v.role==='finale'){await sp;await sleep(600);
-    const st=S.arcs.dubov;if(st.helped){await giftModal()}else{await sleep(900);await leave(v,'sad');W.notes.push('Иван Петрович Дубов больше не придёт.')}
+    const st=S.arcs.dubov;v.arrived=true;if(st.helped){await giftModal()}else{await sleep(900);await leave(v,'sad');W.notes.push('Иван Петрович Дубов больше не придёт.')}
     if(st.helped){await say('Спасибо вам. Дай вам бог.','happy',v);await leave(v,null)}showNext(true);return}
   setEmpty(false);
   const car=$('#car');car.scrollLeft=0;
   for(const w of mountDocs(v)){car.appendChild(w);SND.play('rustle');await sleep(160)}
+  layoutDocuments();
+  v.arrived=true;
+  if(S.upg&&S.upg.sver&&!S.upg.sverSeen&&G.event!=='glitch'){S.upg.sverSeen=1;toast('ГосСверка (бета): ✓ — совпадает с паспортом, «?» — расхождение. Е и Ё она не различает.',null,5200)}
   stampsEnabled(true);
   await sp;
   if(v.askAlways)showAsk();
@@ -193,14 +228,13 @@ async function enter(v){
   if(W.hintStep>=0&&W.hintStep<3){hint(['Листайте документы влево-вправо. Включите «Сверку» и нажмите на ФИО в заявлении, потом на ФИО в паспорте.','Сравнивайте не только ФИО: дату «Действителен до» сверяйте с сегодняшней датой (она в шапке и в регламенте). Пустая графа подписи — тоже нарушение.','Решили? Перетащите печать «Принято» или «Отказано» на графу «Отметка МФЦ» в заявлении.'][W.hintStep]);W.hintStep++}
   else if(W.hintStep>=3)hint(null);
 }
-function rerenderDocs(v){const idx=activeDocIdx();const car=$('#car');car.innerHTML='';mountDocs(v,true).forEach(w=>car.appendChild(w));const w=car.children[idx];if(w)car.scrollLeft=w.offsetLeft-(car.clientWidth-w.clientWidth)/2;W.sel=[]}
+function rerenderDocs(v){const saved=documentLayout();clearSel();const car=$('#car');mountDocs(v,true).forEach(w=>car.appendChild(w));layoutDocuments(saved)}
 $('#tabs').addEventListener('click',e=>{const b=e.target.closest('.tab');if(!b)return;const w=$('#car').children[+b.dataset.i];if(w)scrollToDoc(w)});
-function scrollToDoc(w){const car=$('#car');car.scrollTo({left:w.offsetLeft-(car.clientWidth-w.clientWidth)/2,behavior:'smooth'})}
-$('#car').addEventListener('scroll',()=>{const car=$('#car'),c=car.scrollLeft+car.clientWidth/2;let best=0,bd=1e9;[...car.children].forEach((w,i)=>{const d=Math.abs(w.offsetLeft+w.clientWidth/2-c);if(d<bd){bd=d;best=i}});if(car.scrollLeft+car.clientWidth>=car.scrollWidth-2&&car.scrollLeft>0)best=car.children.length-1;$$('#tabs .tab').forEach((t,i)=>t.classList.toggle('on',i===best))},{passive:true});
+function scrollToDoc(w){raiseDocument(w,true)}
 /* свет: тёмная половина листа */
 $('#car').addEventListener('click',e=>{const sh=e.target.closest('.shade');if(!sh)return;e.stopPropagation();
   /* в сверке касание тёмной части и двигает лист к свету, и сразу выбирает поле под пальцем */
-  const under=W&&W.insp?document.elementsFromPoint(e.clientX,e.clientY).find(n=>!n.closest('.shade')&&n.closest('[data-fid]')):null;
+  const under=W&&W.insp?document.elementsFromPoint(e.clientX,e.clientY).find(n=>!n.closest('.shade')&&n.closest('[data-fid]')&&n.closest('.docwrap')===sh.closest('.docwrap')):null;
   sh.classList.toggle('top');sh.classList.toggle('bot');SND.play('rustle');
   if(under)inspPick(e,under)});
 async function leave(v,expr){
@@ -212,5 +246,5 @@ async function leave(v,expr){
   $('#cit').className='citizen out-l';bubble(null);
   await sleep(600);
   $('#car').innerHTML='';$('#tabs').innerHTML='';setEmpty(true);
-  W.v=null;W.sel=[];
+  W.v=null;clearSel();setDeskFocus(false);
 }

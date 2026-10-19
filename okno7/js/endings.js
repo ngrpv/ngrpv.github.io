@@ -3,6 +3,8 @@
    КОНЦОВКИ
    ========================================================= */
 function recordEnding(id){const A=archive();const a=A[id]||{d:S.day,n:0,t:Date.now()};a.n++;A[id]=a;store.set('archive',A);return a.n===1}
+const HELP_EPILOGUE={babushka:'На стене общей кухни висит список жертвователей. В нём строчка: «Специалист окна №7 — 1 500 ₽ и ни одного пирожка». Зинаида Павловна считает, что это хороший баланс.',it:'Юрист, которого вы оплатили, нашёл у Глеба пункт об «удалённой работе из любой точки мира, кроме места проживания». Пункт вычеркнули. Глеб до сих пор пытается вернуть вам три тысячи, отец считает, что надо принять.',student:'Про оплаченную повторную справку Лиза узнала от секретаря деканата. Та описала вас как «человека с лицом, которое всё понимает». Макет в коробке от микроволновки подписан: «Спасибо окну №7».'};
+const helpEpilogue=id=>S.flags&&S.flags.helped&&S.flags.helped[id]&&HELP_EPILOGUE[id]?[HELP_EPILOGUE[id]]:[];
 function ending(id){
   clearInterval(clockI);AMB.stop();
   const e=ENDINGS[id],today=dayDate(S.day),fresh=recordEnding(id);
@@ -12,7 +14,7 @@ function ending(id){
   if(S.daily)store.set('daily',{key:S.daily.key,end:id,heading:e.h,days:S.day,errors:S.tot.errors,money:S.money,final:reachedFinal});
   const arcRows=S.run.arcs.filter(a=>S.arcs[a].met).map(a=>ARCS[a].stat(S.arcs[a])).map(([k,v])=>`<span>${k}</span><b>${v}</b>`).join('');
   $('#end').innerHTML=`<div class="paperfront"><div class="mast">Верхнеберёзовский вестник</div><div class="meta"><span>№ ${200+S.day}</span><span>${dd(today)}</span><span>Цена: 15 ₽</span></div>
-    <div class="kick">${e.k}</div><h1>${e.h}</h1>${e.p.map(p=>`<p>${p}</p>`).join('')}
+    <div class="kick">${e.k}</div><h1>${e.h}</h1>${[...e.p,...helpEpilogue(id)].map(p=>`<p>${p}</p>`).join('')}
     ${id==='promo'?promoComposer():''}
     <div class="stats"><span>Должность</span><b>${role().t.toLowerCase()}</b><span>Отработано дней</span><b>${S.day}</b><span>Рассмотрено заявлений</span><b>${S.tot.processed}</b><span>Ошибок в протоколах</span><b>${S.tot.errors}</b><span>Конвертов</span><b>${S.tot.bribes}${S.tot.bribeSum?` (${money(S.tot.bribeSum)})`:''}</b><span>На счету</span><b>${money(S.money)}</b>${arcRows}</div>
   </div>

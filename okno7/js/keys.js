@@ -24,6 +24,7 @@ document.addEventListener('keydown',e=>{
     return;
   }
   if((k==='Space'||k==='Enter')&&!onBtn){if(press('#b-next')||press('#b-ret'))done();return}
+  if(k==='KeyE'&&!onBtn&&press('#b-end')){done();return}
   switch(k){
     case'ArrowLeft':goDoc(activeDocIdx()-1);done();break;
     case'ArrowRight':goDoc(activeDocIdx()+1);done();break;

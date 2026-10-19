@@ -151,9 +151,16 @@ test('взятки платят больше, но заметно чаще за�
   assert(c.money > h.money, 'взятки не выгодны: ' + Math.round(c.money) + ' против ' + Math.round(h.money));
   assert(h.final - c.final >= .2, `честный доходит до финала в ${Math.round(h.final * 100)}%, осторожный взяточник в ${Math.round(c.final * 100)}%`);
 });
-test('честный труд приносит деньги (премии работают)', () => {
-  const r = batch('honest', 'young', 'normal', N * 2, 33);
-  assert(r.money > 7000, 'честный игрок в среднем только ' + Math.round(r.money) + ' ₽');
+test('деньги нужны: покупающий всё остаётся с малым запасом, копящий — с большим, игрок «по плану» не уходит в долг', () => {
+  const buyer = batch('honest', 'young', 'normal', N * 2, 33), saver = batch('saver', 'young', 'normal', N * 2, 33), plan = batch('planOnly', 'young', 'normal', N * 2, 33);
+  assert(buyer.money > 1000 && buyer.money < 6000, 'честный покупатель: ' + Math.round(buyer.money) + ' ₽');
+  assert(saver.money > 9000, 'копящий игрок: ' + Math.round(saver.money) + ' ₽');
+  assert(saver.money - buyer.money > 5000, 'траты не создают выбора');
+  assert((plan.ends.debt || 0) / plan.n < .08, 'игрок «по плану» уходит в долг в ' + Math.round((plan.ends.debt || 0) / plan.n * 100) + '%');
+});
+test('сверхплановая работа выгодна умеренно: разница с игроком «по плану» — не больше пяти тысяч', () => {
+  const buyer = batch('honest', 'veteran', 'normal', N * 2, 44), plan = batch('planOnly', 'veteran', 'normal', N * 2, 44);
+  assert(buyer.money - plan.money < 5000, 'переработка даёт ' + Math.round(buyer.money - plan.money) + ' ₽');
 });
 test('чем строже сложность, тем больше ошибок и меньше денег у небрежного игрока', () => {
   const e = batch('sloppy', 'young', 'easy', N * 3, 5), n = batch('sloppy', 'young', 'normal', N * 3, 5), h = batch('sloppy', 'young', 'hard', N * 3, 5);

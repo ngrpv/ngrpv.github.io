@@ -10,6 +10,7 @@ const foundCount=()=>END_ORDER.filter(id=>archive()[id]).length;
 
 /* --- титул --- */
 function initTitle(){
+  applyInterfaceMode();
   const sv=store.get('save');
   const c=$('#b-cont');if(sv&&sv.v===2&&sv.day&&sv.run){c.hidden=false;c.textContent=`Продолжить: день ${sv.day} из 12`}else c.hidden=true;
   const fc=foundCount();$('#b-arch').textContent=`Архив · ${fc}/${END_ORDER.length}`;
@@ -64,7 +65,7 @@ function openContract(){
   $('#contract').innerHTML=`<div class="lh">${emblem()}<div><div class="lh-t">МФЦ «Мои справки»<br>г. Верхнеберёзовска</div><div class="lh-n">${longDate(dayDate(0))}</div></div></div>
   <h2>Трудовой договор № 7/26</h2><p class="subj">со специалистом окна №7 (${R.t.toLowerCase()})</p>
   <p>1. Работник обязуется принимать граждан строго по регламенту, который ежедневно уточняется распоряжениями руководства.</p>
-  <p>2. Оплата труда: оклад <b>${R.salary} ₽</b> в день плюс <b>${PIECE} ₽</b> за каждое рассмотренное заявление. Ошибки сверх ${ERR_WORDS[Math.max(1,R.freeErr+diff().free)]} в день — штраф ${diff().fine} ₽.</p>
+  <p>2. Оплата труда: оклад <b>${R.salary} ₽</b> в день плюс <b>${PIECE} ₽</b> за каждое рассмотренное заявление и <b>${PLAN_BONUS} ₽</b> за выполнение дневного плана. Ошибки сверх ${ERR_WORDS[Math.max(1,R.freeErr+diff().free)]} в день — штраф ${diff().fine} ₽.</p>
   <p>3. Работник не принимает подарков, конвертов, пирожков и иных форм благодарности, кроме устной.</p>
   <p>4. Работник улыбается в соответствии с приказом №12 «Об улыбке», но без фанатизма.</p>
   ${S.role==='nephew'?'<p>5. Рекомендация: П. П. Ступин (дядя). Родство в отделе кадров не выявлено.</p>':S.role==='veteran'?'<p>5. Стаж: 30 лет. Предыдущие места работы: «Мои документы», «Мои бумаги», «Моё окно», «Окно».</p>':''}
@@ -100,10 +101,10 @@ function emblem(){return `<svg viewBox="0 0 60 60" aria-hidden="true"><circle cx
 function setDayCtx(){
   const day=S.day;let ev=S.run.events[day]||null;
   S.run.arcs.forEach(id=>{const e=ARCS[id].event&&ARCS[id].event(day,S.arcs[id]);if(e)ev=e});
+  if(!ev&&day===S.run.glitchDay&&S.upg&&S.upg.sver)ev='glitch';
   G={today:dayDate(day),tariff:tariffFor(day),plan:PLAN[day]+(day>=3?diff().plan:0),event:ev,suspend:[],fineMul:day===12?2:1,freeErr:Math.max(1,role().freeErr+diff().free),season:seasonFor(day)};
-  if(ev==='gosu'){G.plan+=2;G.suspend=['R_GOSU']}
-  if(ev==='noqueue')G.plan*=2;
-  if(ev==='agents')G.plan+=2;
+  G.clockMul=ev==='noqueue'?1.25:1;
+  if(ev==='gosu')G.suspend=['R_GOSU'];
   if(ev==='audit')G.fineMul=2;
 }
 function seasonStrip(){const s=G.season;if(!s)return '';const c=s.cal;return `<div class="seasonbar"><span class="sb-k">За окном · ${WD[G.today.getDay()]} ${pad(G.today.getDate())}.${pad(G.today.getMonth()+1)}</span><b>${s.weather.t}</b><span>${s.weather.p}</span>${c?`<b class="sb-cal">${c.t}</b><span>${c.p}</span>`:''}</div>`}
@@ -122,6 +123,7 @@ function startDay(){
   const tariffLine=isActive('R_SUM')||isActive('R_RECEIPT')?`<span>Госпошлина: <b>${rub(G.tariff)}</b>${S.run.params.tariffDay===S.day?' (было 350 ₽)':''}</span>`:'';
   $('#brief').innerHTML=`${NOTES[S.day]?`<div class="sticky">${NOTES[S.day]}</div>`:''}
   ${seasonStrip()}
+  ${S.run.wanted&&S.run.wanted.day===S.day?`<div class="evcard"><span class="ev-k">Ориентировка · дежурная часть</span><h3>Разыскивается</h3><p>${esc(wantedFlyer())}</p></div>`:''}
   ${ev?`<div class="evcard"><span class="ev-k">Телефонограмма · срочно</span><h3>${ev.t}</h3><p>${ev.p}</p></div>`:''}
   <div class="sheetpaper">
     <div class="lh">${emblem()}<div><div class="lh-t">Министерство цифрового развития, связи и справок<br>МФЦ «Мои справки» г. Верхнеберёзовска</div><div class="lh-n">Исх. № ${S.day*37+104}-ДИР от ${dd(G.today)} · ${WD[G.today.getDay()]}</div></div></div>
@@ -129,7 +131,7 @@ function startDay(){
     <p>${D.p}</p>
     ${newR.length?`<p>С сегодняшнего дня в регламент окна №7 вносятся следующие пункты:</p><ol class="newrules">${newR.map(id=>`<li>${ruleText(id)}</li>`).join('')}</ol>`:S.day===1?`<p>Действующий регламент:</p><ol class="newrules">${CORE.map(id=>`<li>${ruleText(id)}</li>`).join('')}</ol>`:'<p>Новых пунктов нет. Действующий регламент соблюдать неукоснительно.</p>'}
     <div class="planbox"><span>План на день: <b>${G.plan}</b> ${plural(G.plan,"заявление","заявления","заявлений")}</span>${tariffLine}<span>День ${S.day} из 12</span></div>
-    ${S.day===1?'<p style="font:13px/1.45 var(--f-ui);background:#efe9d6;padding:8px 10px">Как работать: листайте документы на столе. Включите <b>«Сверку»</b> и нажмите два поля (или поле и пункт регламента), чтобы найти расхождение. Затем <b>перетащите печать</b> на графу «Отметка МФЦ» в заявлении и <b>смахните документы вверх</b> — вернуть гражданину.</p>':''}
+    ${S.day===1?'<p style="font:13px/1.45 var(--f-ui);background:#efe9d6;padding:8px 10px">Как работать: '+(freeDesk()?'раскладывайте сами бумаги по столу, касайтесь листа, чтобы поднять его наверх. Включите <b>«Сверку»</b>, выберите два поля (или поле и пункт регламента) и нажмите <b>«Сверить»</b>.':'листайте документы или выбирайте вкладку. Включите <b>«Сверку»</b> и выберите два поля (или поле и пункт регламента) — результат появится сразу.')+' Затем <b>перетащите печать</b> на графу «Отметка МФЦ» в заявлении и <b>смахните документы вверх</b> — вернуть гражданину.</p>':''}
     <div class="signrow"><span>Начальник отдела</span>${sigSVG(4242,'#2443a6',true,.2)}<span>П. П. Ступин</span><span id="brief-stamp"></span></div>
   </div>`;
   show('s-brief');$('#brief').scrollTop=0;

@@ -6,8 +6,7 @@ function stampDrag(btn,accept){
     const v=W.v,app=v.docEls&&v.docEls[0];if(!app)return;
     e.preventDefault();try{btn.setPointerCapture(e.pointerId)}catch(_){}
     const docEl=app.querySelector('.doc'),zone=app.querySelector('.stampzone');
-    if(activeDocIdx()!==0)scrollToDoc(app);
-    const zr0=zone.getBoundingClientRect(),ar0=app.getBoundingClientRect();if(zr0.bottom>ar0.bottom||zr0.top<ar0.top)app.scrollTop+=zr0.top-ar0.top-ar0.height*.45;
+    revealStampZone(app);
     zone.classList.add('target');
     const ar=$('#app').getBoundingClientRect(),g=document.createElement('div');g.className='stampghost';
     g.innerHTML=dStamp(accept?'ПРИНЯТО':'ОТКАЗАНО',accept?'#4b3fa3':'#b4222f',`ОКНО №7 · ${dd(G.today)}`);g.style.width=docEl.getBoundingClientRect().width*.62+'px';
@@ -68,13 +67,18 @@ function judge(v,accept,reason){
     else{const comply=(v.callWant==='accept')===accept;if(comply){covered=true;S.loyalty+=8;S.conscience-=v.callCons||4;N.push(v.callOk)}else{S.loyalty-=v.callPen||18;S.conscience+=v.callDefy||3;N.push(v.callNo)}}
   }
   if(v.arc)ARCS[v.arc].decide(v,accept,correct,S.arcs[v.arc],N);
+  if(v.caseId&&CASES[v.caseId])CASES[v.caseId].decide(v,accept,correct,N);
+  if(!accept&&G.event==='quota'&&W.time<780){W.quotaNo=(W.quotaNo||0)+1;if(W.quotaNo>2){S.loyalty-=3;N.push('Пал Палыч: «Третий отказ до обеда. Мы же договаривались».')}}
   if(v.special==='shopper'){if(correct&&!v.bribeTaken){S.loyalty+=12;N.push('Тайный покупатель оставил о вас отличный отзыв.')}else if(!correct){S.loyalty-=6;N.push('Тайный покупатель отметил вашу ошибку.')}}
   if(v.bribeTaken&&!accept&&v.bribe.kind==='cash'){S.complaints+=20;N.push('Заявитель, отдавший конверт, получил отказ и пишет жалобу.')}
   if(accept&&!correct&&!covered)S.conscience+=1;
   if(!accept&&!viol.length&&!covered){S.complaints+=8;S.conscience-=3}
   if(!accept&&G.event==='blogger'){S.complaints+=v.confessed?3:6;if(!W.blogNote){W.blogNote=true;N.push('Блогер выложил ролик «Окно №7 опять отказывает». Комментарии лучше не читать.')}}
-  else if(!accept&&viol.length&&!v.confessed&&!v.named&&chance(.15))S.complaints+=3;
+  else if(!accept&&viol.length&&!v.confessed&&!v.named&&!v.callWant){
+    if(!v.asked&&viol.every(id=>RULES[id].fix)){S.complaints+=4;if(!W.easyNote){W.easyNote=true;N.push('Заявитель мог исправить недочёт на месте. Он пишет жалобу: «даже не спросили».')}}
+    else if(chance(.15))S.complaints+=3};
   W.processed++;S.tot.processed++;
+  if(accept&&correct&&v.fixedOnSpot){S.loyalty+=1;(S.stats||(S.stats=newStats())).fixed=((S.stats&&S.stats.fixed)||0)+1}
   const error=!correct&&!covered;
   const st=S.stats||(S.stats=newStats());st.seen++;
   if(error){st.wrong++;st.streak=0;if(viol.length)st.miss[viol[0]]=(st.miss[viol[0]]||0)+1;else st.fals=(st.fals||0)+1}
@@ -86,8 +90,9 @@ async function decide(accept,reason,pt){
   const v=W.v;if(!v||v.done)return;v.done=true;W.busy=true;stampsEnabled(false);setInsp(false);hint(null);hideAsk();closeSheet();
   const res=judge(v,accept,reason);
   const app=v.docEls&&v.docEls[0];
-  if(app){if(activeDocIdx()!==0){scrollToDoc(app);await sleep(300)}const doc=app.querySelector('.doc');placeImprint(doc,accept,pt,false);
+  if(app){if(activeDocIdx()!==0){scrollToDoc(app);await sleep(300)}if(!pt)revealStampZone(app);const doc=app.querySelector('.doc');placeImprint(doc,accept,pt,false);
     const zr=doc.querySelector('.stampzone'),sg=document.createElement('div');sg.className='imprint';sg.style.cssText=`--r:-4deg;right:4%;top:${zr.offsetTop+zr.offsetHeight-30}px;width:30%;animation:none;mix-blend-mode:multiply`;sg.innerHTML=sigSVG(S.sig,'#2443a6',true,.25);doc.appendChild(sg)}
+  setDeskFocus(false);
   await sleep(700);
   if(res.slip)showSlip(res.slip);
   hud();
@@ -98,6 +103,7 @@ async function decide(accept,reason,pt){
   await leave(v,null);
   if(W.ended)return;
   W.busy=false;showNext(true);
+  if(canFinish()&&!W.planToast){W.planToast=true;toast('План выполнен. Можно закончить смену или принять ещё посетителей.','good',3200)}
   if(W.hintStep>=0&&W.hintStep<4){hint('Нажмите «Следующий!» — очередь ждёт.');W.hintStep=3}
 }
 
@@ -158,6 +164,18 @@ function shopperReveal(){
 }
 
 /* --- телефон --- */
+/* в день ориентировки кнопка «Телефон» при посетителе открывает звонок в дежурную часть */
+function wantedDuty(){
+  const v=W&&W.v;if(!S.run.wanted||S.run.wanted.day!==S.day||!v||v.done||!v.arrived||v.wantedCalled)return false;
+  W.paused++;
+  modal(`<h3>Дежурная часть</h3><p>Сообщить о заявителе: <b>${esc(fioS(v.fio))}</b>? Ориентировка: ${esc(wantedFlyer())}</p><div class="row"><button class="btn" data-m="no">Отбой</button><button class="btn primary" data-m="yes">Сообщить</button></div>`,m=>{
+    W.paused--;if(m!=='yes')return;
+    v.wantedCalled=true;
+    if(v.wanted){S.loyalty+=4;W.notes.push('Дежурная часть поблагодарила за сигнал. Разыскиваемый успел получить справку, и теперь его ждут на выходе.')}
+    else{S.complaints+=10;S.loyalty-=3;W.notes.push('Дежурная часть выехала к мирному гражданину, который просто похож. Он обещает написать на вас жалобу.')}
+    say(v.wanted?'Вы что, звонили?! Я просто за справкой.':'Мне позвонили, да? Это что, из-за бороды?','angry',v)});
+  return true;
+}
 let ringing=null;
 function phoneCall(call){
   return new Promise(res=>{
@@ -168,6 +186,7 @@ function phoneCall(call){
 }
 $('#b-phone').onclick=()=>{
   if(!W)return;
+  if(!ringing&&wantedDuty())return;
   if(!ringing){toast('Пал Палыч на совещании. Совещание до конца года.',null,2000);return}
   const r=ringing;ringing=null;clearInterval(r.rep);$('#b-phone').classList.remove('ringing');
   modal(`<h3>Внутренний звонок</h3><p class="callq">${r.call.text}</p>${role().immune?'<p style="font-size:13px;color:var(--ink-soft)">Вы — племянник Пал Палыча. Можно поступать по регламенту: родне он ничего не сделает.</p>':''}<div class="row"><button class="btn primary" data-m="ok">Ясно</button></div>`,()=>{W.paused--;r.res()});
@@ -188,7 +207,8 @@ async function endShift(){
   if(v&&!v.done){v.done=true;await say('Как это «закрыто»?! Я с утра стою!','angry',v);await sleep(800);await leave(v,null)}
   closeMisses();
   AMB.stop();
-  $('#blinds-t').innerHTML='Приём окончен<br>18:00';$('#blinds').classList.add('down');led('ПРИЁМ ОКОНЧЕН');
+  const clk=W.early?`${pad(Math.floor(W.time/60))}:${pad(Math.floor(W.time%60))}`:'18:00';
+  $('#blinds-t').innerHTML=`Приём окончен<br>${clk}`;$('#blinds').classList.add('down');led('ПРИЁМ ОКОНЧЕН');
   await sleep(1000);
-  modal(`<h3>18:00</h3><p>Рабочий день окончен. Рассмотрено заявлений: <b>${W.processed}</b> из ${G.plan} по плану. Ошибок: <b>${W.errors}</b>.</p><div class="row"><button class="btn primary" data-m="ok">Сдать смену</button></div>`,()=>evening());
+  modal(`<h3>${clk}</h3><p>${W.early?'План выполнен, окно закрыто досрочно.':'Рабочий день окончен.'} Рассмотрено заявлений: <b>${W.processed}</b> из ${G.plan} по плану. Ошибок: <b>${W.errors}</b>.</p><div class="row"><button class="btn primary" data-m="ok">Сдать смену</button></div>`,()=>evening());
 }

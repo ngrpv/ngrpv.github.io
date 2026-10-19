@@ -23,8 +23,8 @@
 <meta property="og:image:height" content="630">
 <meta property="og:locale" content="ru_RU">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="css/fonts.css?v=e8554320dd">
-<link rel="stylesheet" href="css/style.css?v=e8554320dd">
+<link rel="stylesheet" href="css/fonts.css?v=a8b965e543">
+<link rel="stylesheet" href="css/style.css?v=a8b965e543">
 </head>
 <body>
 
@@ -46,9 +46,9 @@
       <button class="btn" id="b-cont" hidden>Продолжить</button>
       <button class="btn" id="b-daily">Смена дня</button>
       <div class="t-row"><button class="btn" id="b-arch">Архив газет</button><button class="btn" id="b-ach">Знаки отличия</button></div>
-      <div class="t-row"><button class="btn ghost" id="b-help">Как играть</button><button class="btn ghost" id="b-mute">Звук: вкл.</button></div>
+      <div class="t-row"><button class="btn ghost" id="b-help">Как играть</button><button class="btn ghost" id="b-settings">Настройки</button><button class="btn ghost" id="b-mute">Звук: вкл.</button></div>
     </div>
-    <p class="t-foot">Сатира. Все совпадения с реальными учреждениями неслучайны, но персонажи вымышлены.<span class="game-version" id="game-version" data-build="e8554320dd">Версия 1.0.2</span></p>
+    <p class="t-foot">Сатира. Все совпадения с реальными учреждениями неслучайны, но персонажи вымышлены.<span class="game-version" id="game-version" data-build="a8b965e543">Версия 1.0.17</span></p>
   </section>
 
   <!-- ROLE -->
@@ -82,7 +82,7 @@
     <header class="hud">
       <div class="hud-l"><b id="h-day">День 1</b><span class="hud-date f" data-today id="h-date">пн 19.10</span></div>
       <div class="hud-clock" id="h-clock">09:00</div>
-      <div class="hud-r"><b id="h-money">0 ₽</b><span id="h-plan">план 0/3</span></div>
+      <div class="hud-r"><div class="hud-money"><b id="h-money">0 ₽</b><span id="h-plan">план 0/3</span></div><button class="settingsbtn" id="b-work-settings" aria-label="Настройки">⚙</button></div>
       <div class="meters">
         <span class="meter" id="m-loy">Начальство<i><u></u></i></span>
         <span class="meter" id="m-com">Жалобы<i><u></u></i></span>
@@ -104,6 +104,7 @@
       <button class="askbtn" id="b-ask" hidden>Спросить</button>
     </div>
     <div class="desk" id="desk">
+      <button class="desk-handle" id="b-desk" aria-expanded="false" aria-label="Поднять документы"><i aria-hidden="true"></i><span>Документы ближе ↑</span></button>
       <div class="tray" id="tray" aria-hidden="true"><span>Лоток для документов</span></div>
       <div class="retcue" id="retcue" hidden aria-hidden="true">↑ смахните документы в лоток</div>
       <div class="tabs" id="tabs"></div>
@@ -112,6 +113,11 @@
       <div class="hint" id="hint" hidden><span id="hint-t"></span><button id="hint-x" aria-label="Скрыть подсказку">×</button></div>
       <button class="envelope" id="env" hidden aria-label="Подношение"></button>
     </div>
+    <section class="comparison" id="comparison" aria-label="Сверка выбранных фрагментов" hidden>
+      <div class="comparison-head"><b>Сверка</b><button id="b-compare-clear">Сбросить</button></div>
+      <div class="comparison-pair" id="comparison-pair"></div>
+      <div class="comparison-foot"><span id="comparison-result" role="status" aria-live="polite"></span><button id="b-compare" disabled>Сверить</button></div>
+    </section>
     <div class="actions">
       <div class="tools">
         <button class="tool" id="b-book" aria-label="Регламент" aria-keyshortcuts="B"></button>
@@ -124,6 +130,7 @@
         <button class="stampbtn" id="b-no" aria-label="Отказано" aria-keyshortcuts="N"></button>
       </div>
       <button class="nextbtn" id="b-next" hidden>Следующий!</button>
+      <button class="nextbtn endbtn" id="b-end" hidden aria-keyshortcuts="E">Закончить смену</button>
       <button class="nextbtn retbtn" id="b-ret" hidden>Вернуть ↑</button>
     </div>
   </section>
@@ -166,30 +173,34 @@
   </defs>
 </svg>
 
-<script src="js/util.js?v=e8554320dd"></script>
-<script src="js/sound.js?v=e8554320dd"></script>
-<script src="js/graphics.js?v=e8554320dd"></script>
-<script src="js/data-people.js?v=e8554320dd"></script>
-<script src="js/data-rules.js?v=e8554320dd"></script>
-<script src="js/data-days.js?v=e8554320dd"></script>
-<script src="js/data-season.js?v=e8554320dd"></script>
-<script src="js/state.js?v=e8554320dd"></script>
-<script src="js/arcs.js?v=e8554320dd"></script>
-<script src="js/arc-razan.js?v=e8554320dd"></script>
-<script src="js/arc-darina.js?v=e8554320dd"></script>
-<script src="js/visitors.js?v=e8554320dd"></script>
-<script src="js/docs.js?v=e8554320dd"></script>
-<script src="js/screens.js?v=e8554320dd"></script>
-<script src="js/shift.js?v=e8554320dd"></script>
-<script src="js/inspect.js?v=e8554320dd"></script>
-<script src="js/lens.js?v=e8554320dd"></script>
-<script src="js/decision.js?v=e8554320dd"></script>
-<script src="js/evening.js?v=e8554320dd"></script>
-<script src="js/achievements.js?v=e8554320dd"></script>
-<script src="js/help.js?v=e8554320dd"></script>
-<script src="js/daily.js?v=e8554320dd"></script>
-<script src="js/endings.js?v=e8554320dd"></script>
-<script src="js/keys.js?v=e8554320dd"></script>
-<script src="js/main.js?v=e8554320dd"></script>
+<script src="js/util.js?v=a8b965e543"></script>
+<script src="js/sound.js?v=a8b965e543"></script>
+<script src="js/graphics.js?v=a8b965e543"></script>
+<script src="js/data-people.js?v=a8b965e543"></script>
+<script src="js/data-rules.js?v=a8b965e543"></script>
+<script src="js/data-days.js?v=a8b965e543"></script>
+<script src="js/data-season.js?v=a8b965e543"></script>
+<script src="js/state.js?v=a8b965e543"></script>
+<script src="js/arcs.js?v=a8b965e543"></script>
+<script src="js/arc-stories.js?v=a8b965e543"></script>
+<script src="js/arc-razan.js?v=a8b965e543"></script>
+<script src="js/cases.js?v=a8b965e543"></script>
+<script src="js/arc-darina.js?v=a8b965e543"></script>
+<script src="js/visitors.js?v=a8b965e543"></script>
+<script src="js/docs.js?v=a8b965e543"></script>
+<script src="js/screens.js?v=a8b965e543"></script>
+<script src="js/shift.js?v=a8b965e543"></script>
+<script src="js/desk.js?v=a8b965e543"></script>
+<script src="js/inspect.js?v=a8b965e543"></script>
+<script src="js/lens.js?v=a8b965e543"></script>
+<script src="js/decision.js?v=a8b965e543"></script>
+<script src="js/evening.js?v=a8b965e543"></script>
+<script src="js/achievements.js?v=a8b965e543"></script>
+<script src="js/help.js?v=a8b965e543"></script>
+<script src="js/settings.js?v=a8b965e543"></script>
+<script src="js/daily.js?v=a8b965e543"></script>
+<script src="js/endings.js?v=a8b965e543"></script>
+<script src="js/keys.js?v=a8b965e543"></script>
+<script src="js/main.js?v=a8b965e543"></script>
 </body>
 </html>

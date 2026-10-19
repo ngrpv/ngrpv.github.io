@@ -8,16 +8,20 @@ const load = loadGame;
 const G = load();
 
 // Сколько посетителей успевает обслужить игрок за смену (480 игровых минут без обеда).
-const MIN_PER_VISITOR = { honest: 55, slow: 75, lazy: 110, sloppy: 45, briber: 50, careful: 55, refuseAll: 25, acceptAll: 22, obedient: 55, principled: 55 };
+const MIN_PER_VISITOR = { honest: 55, slow: 75, planOnly: 55, saver: 55, lazy: 160, sloppy: 45, briber: 50, careful: 55, refuseAll: 25, acceptAll: 22, obedient: 55, principled: 55 };
 
 const STRATS = {
   // честно: видит нарушение с вероятностью detect, отказывает по верному пункту, конвертов не берёт
   honest: { detect: 0.92, bribes: false, obey: false },
   // честно, но медленно: 6 посетителей в день
   slow: { detect: 0.92, bribes: false, obey: false },
-  // ленивый: 4 посетителя в день
+  // ленивый: 3 посетителя в день (меньше плана с третьего дня)
   lazy: { detect: 0.92, bribes: false, obey: false },
   sloppy: { detect: 0.7, bribes: false, obey: false },
+  // честно, 8 человек в день, но ничего не покупает: копит на билет
+  saver: { detect: 0.92, bribes: false, obey: false, saver: true },
+  // честно, ровно по плану и сразу закрывает окно (досрочное завершение смены)
+  planOnly: { detect: 0.92, bribes: false, obey: false },
   // берёт всё, что дают, и пропускает тех, кто дал
   briber: { detect: 0.92, bribes: true, obey: true },
   // осторожный взяточник: берёт конверты, пока ОБЭП ниже 35, пирожки не берёт, тайного покупателя узнаёт
@@ -42,7 +46,7 @@ function runOne(stratName, roleName, diffName) {
     G.setDayCtx();
     G.W = { time: 540, processed: 0, errors: 0, fines: 0, bribes: 0, idx: 0, notes: [], pirozhki: false, blogNote: false };
     G.W.specials = G.planSpecials();
-    const n = Math.floor(480 / MIN_PER_VISITOR[stratName]);
+    const n = stratName === 'planOnly' ? Math.max(G.G.plan, Math.max(-1, ...Object.keys(G.W.specials).map(Number)) + 1) : Math.floor(480 / MIN_PER_VISITOR[stratName]);
     for (let i = 0; i < n; i++) {
       const sp = G.W.specials[G.W.idx]; G.W.idx++;
       const v = G.makeQueuedVisitor(sp);
@@ -60,6 +64,13 @@ function runOne(stratName, roleName, diffName) {
       else {
         const sees = v.viol.length && Math.random() < st.detect;
         accept = !sees;
+        // исправимые недочёты честный игрок решает вопросом: заявитель исправляет, заявление принимается
+        if (sees && st.detect && v.viol.every(id => G.RULES[id].fix) && !v.callWant) {
+          v.asked = true;
+          const out = G.interrogate(v, v.viol[0]);
+          if (out.kind === 'fix' && !v.viol.length) accept = true;
+          else accept = false;
+        }
         if (st.obey && v.callWant) accept = v.callWant === 'accept';
         if (st.bribes && v.bribeTaken) accept = true;
         if (st.stand && v.arc === 'notary' && v.role === 'final') accept = false;
@@ -70,7 +81,11 @@ function runOne(stratName, roleName, diffName) {
     G.closeMisses();
     const E = G.calcEvening();
     // вечерний выбор: честные платят за маму и кота, «всем отказывать» экономит
-    if (E.dil) G.pickDilemma(E.dil, st.refuse || st.accept ? 'b' : 'a');
+    if (E.dil) {
+      const opts = G.dilOpts(E.dil), cash = G.eveCash(), decline = opts.find(o => o.decline);
+      const pick = st.refuse || st.accept || st.saver ? decline : opts.find(o => !o.decline && !(o.cost > cash)) || decline;
+      G.pickDilemma(E.dil, pick.k);
+    }
     G.settleEvening();
     const S = G.S;
     trace.push({ day, money: S.money, loy: S.loyalty, com: S.complaints, sus: S.suspicion, con: S.conscience, err: G.W.errors, done: G.W.processed, plan: G.G.plan });

@@ -7,12 +7,21 @@ function speechHarness(){
   const document=element();document.querySelector=s=>{if(!nodes.has(s))nodes.set(s,element());return nodes.get(s)};document.querySelectorAll=()=>[];
   const window={__OKNO_SIM__:{}};
   const source=scriptList().map(f=>fs.readFileSync(path.join(ROOT,f),'utf8')).join('\n');
-  vm.runInNewContext('(()=>{'+source+'\n})();',{window,document,navigator:{},URLSearchParams,console,
+  vm.runInNewContext('(()=>{'+source+'\nwindow.__OKNO_UI__={showAsk};\n})();',{window,document,navigator:{},URLSearchParams,console,
     setInterval:fn=>{const id=++serial;timers.set(id,fn);return id},clearInterval:id=>timers.delete(id),setTimeout:()=>0,clearTimeout:()=>{},requestAnimationFrame:()=>0});
   const game=window.__OKNO_SIM__;game.S=game.freshState('young');game.setupRun();game.S.day=1;game.setDayCtx();game.W={};
   const visitor=game.genVisitor({flaws:[]});game.W.v=visitor;
-  return{game,visitor,nodes,timers};
+  return{game,visitor,nodes,timers,ui:window.__OKNO_UI__};
 }
+test('разговор о жизни оставляет вопрос по нарушению доступным и сам не повторяется',()=>{
+  const {game,visitor,nodes,ui}=speechHarness();visitor.storyStep=0;game.W.time=540;
+  ui.showAsk();const button=nodes.get('#b-ask');assert.equal(button.textContent,'Поговорить');
+  button.onclick();assert.equal(visitor.storyAsked,true);assert.notEqual(visitor.asked,true);assert.equal(button.hidden,true);
+  ui.showAsk();assert.equal(button.hidden,true);
+  game.W.lastBad='R_SIGN';ui.showAsk();assert.equal(button.hidden,false);assert.equal(button.textContent,'Попросить исправить');
+  game.W.lastBad='R_FIO';ui.showAsk();assert.equal(button.textContent,'Спросить');
+  button.onclick();assert.equal(visitor.asked,true);assert.equal(button.hidden,true);
+});
 test('новая реплика завершает ожидание предыдущей и оставляет один таймер',async()=>{
   const {game,visitor,timers}=speechHarness();let completed=false;
   const first=game.say('Длинная реплика, которую прервали сверкой.','neutral',visitor).then(()=>{completed=true});

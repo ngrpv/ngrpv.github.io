@@ -8,14 +8,14 @@ const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r
 const role=()=>ROLES[S.role]||ROLES.young;
 /* сложность: бесплатные ошибки, размер штрафа, частота подделок, план, подозрительность ОБЭП, премии */
 const DIFFS={
-  easy:{t:'Новичок',d:'На одну ошибку больше без штрафа, подделок меньше.',free:1,fine:300,flaw:-.08,dbl:[10,.1],plan:0,sus:1,bonus:350,wk:6},
-  normal:{t:'Обычная',d:'Как задумано.',free:0,fine:300,flaw:0,dbl:[8,.2],plan:0,sus:1,bonus:250,wk:4},
-  hard:{t:'Строгая',d:'На одну бесплатную ошибку меньше, штраф 450 ₽, подделок больше, план выше на одно заявление, ОБЭП внимательнее.',free:-1,fine:450,flaw:.08,dbl:[6,.3],plan:1,sus:1.25,bonus:250,wk:3}
+  easy:{t:'Новичок',d:'На одну ошибку больше без штрафа, подделок меньше.',free:1,fine:300,flaw:-.08,dbl:[11,.1],plan:0,sus:1,bonus:350,wk:6,clk:1},
+  normal:{t:'Обычная',d:'Как задумано.',free:0,fine:300,flaw:0,dbl:[10,.2],plan:0,sus:1,bonus:250,wk:4,clk:1.25},
+  hard:{t:'Строгая',d:'На одну бесплатную ошибку меньше, штраф 450 ₽, подделок больше, план выше на одно заявление, часы идут быстрее, ОБЭП внимательнее.',free:-1,fine:450,flaw:.08,dbl:[7,.3],plan:1,sus:1.25,bonus:250,wk:3,clk:1.5}
 };
 const DIFF_ORDER=['easy','normal','hard'];
 const diff=()=>DIFFS[S&&S.diff]||DIFFS.normal;
 const newStats=()=>({seen:0,ok:0,wrong:0,fals:0,miss:{},streak:0,best:0,flawless:0,pies:0,hist:[]});
-function freshState(r,d){const R=ROLES[r]||ROLES.young;return{v:2,role:r,diff:DIFFS[d]?d:'normal',stats:newStats(),day:1,money:1500,loyalty:R.loyalty,complaints:10,suspicion:R.susp,conscience:0,flags:{},loan:0,catGone:false,catSkip:0,catSick:!!R.sickCat,mamaSkip:0,mamaSick:false,ticket:40,sig:null,tot:{processed:0,errors:0,bribes:0,bribeSum:0},run:null,arcs:{}}}
+function freshState(r,d){const R=ROLES[r]||ROLES.young;return{v:2,role:r,diff:DIFFS[d]?d:'normal',stats:newStats(),day:1,money:1500,loyalty:R.loyalty,complaints:10,suspicion:R.susp,conscience:0,flags:{},loan:0,catGone:false,catSkip:0,catSick:!!R.sickCat,upg:{},mamaSkip:0,mamaSick:false,ticket:40,sig:null,tot:{processed:0,errors:0,bribes:0,bribeSum:0},run:null,arcs:{}}}
 function save(){S.savedAt=Date.now();store.set('save',S)}
 
 /* --- партия: какие правила, сюжеты и события выпали --- */
@@ -64,11 +64,19 @@ function setupRun(options){
   /* события смены */
   /* трудные выборы вечером */
   run.dilemmas={};const dfree=shuffle([3,4,5,6,7,8,9,10]);if(chance(.75))run.dilemmas[ri(4,8)]='op';shuffle(['vet','flood','lend']).slice(0,ri(1,2)).forEach(id=>{const d=dfree.find(x=>!run.dilemmas[x]);if(d)run.dilemmas[d]=id});
+  /* улучшения и операция маме стоят на фиксированных вечерах, прочие выборы уступают место */
+  {const D=run.dilemmas,out=[],opd=+Object.keys(D).find(d=>D[d]==='op');
+   if(opd){delete D[opd];const nd=opd<=6?6:8;if(D[nd])out.push(D[nd]);D[nd]='op'}
+   [4,7].forEach(d=>{if(D[d]){out.push(D[d]);delete D[d]}});D[4]='tool';D[7]='tool2';
+   out.forEach(id=>{const d=[3,5,9,10,8,6].find(x=>!D[x]);if(d)D[d]=id})}
   let prev=null,shop=false;
   for(let d=2;d<=11;d++){if(!chance(.45))continue;const ew={...EVENT_W};if(prev)delete ew[prev];if(shop)delete ew.shopper;const e=wpick(ew);run.events[d]=e;prev=e;if(e==='shopper')shop=true}
   /* погода: к концу октября холоднее */
   run.weather=rollWeather();
   /* газета */
   const ns=shuffle(NEWS_POOL.map((_,i)=>i));for(let d=2;d<=11;d++)run.news[d]=ns[d-2];
+  /* случаи, сбой «ГосСверки» и «Показатели» разыгрываются после прежних бросков, чтобы старые сиды не сдвинулись */
+  run.cases=pickCases();run.glitchDay=ri(8,10);
+  {const qd=[3,4,5,6,7,9,10,11].filter(d=>!run.events[d]);if(qd.length&&chance(.6))run.events[pick(qd)]='quota'}
 }
 const tariffFor=day=>S.run.params.tariffDay&&day>=S.run.params.tariffDay?412.5:350;
