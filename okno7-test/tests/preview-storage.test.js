@@ -3,7 +3,7 @@ const test=require('node:test'),assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const previewUtil=path.join(__dirname,'../../okno7-test/js/util.js');
 test('тестовая версия не читает, не меняет и не удаляет сохранения основной игры',{skip:!fs.existsSync(previewUtil)},()=>{
-  const primary={save:{day:7,savedAt:100},archive:{test:{n:2}},muted:true,tutDone:true,ach:{test:true},diff:'hard',daily:{day:4},interfaceMode:'classic'};
+  const primary={save:{day:7,savedAt:100},archive:{test:{n:2}},muted:true,tutDone:true,ach:{test:true},diff:'hard',daily:{day:4}};
   const data=new Map(Object.entries(primary).map(([k,v])=>['okno7.'+k,JSON.stringify(v)]));data.set('okno7.save.v1','legacy');
   const original=[...data];
   const localStorage={getItem:k=>data.get(k)||null,setItem:(k,v)=>data.set(k,v),removeItem:k=>data.delete(k)};

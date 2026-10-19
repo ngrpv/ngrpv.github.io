@@ -39,7 +39,7 @@ const longDate=d=>`«${d.getDate()}» ${MON[d.getMonth()]} ${d.getFullYear()} г
 /* хранилище: личный документ игрока в db артефакта (data/users/<id>/okno7), localStorage — запасной слой.
    Пишем только при изменении, по одной записи за раз; при отказе db молча остаёмся на localStorage. */
 const LS={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
-const STORE_KEYS=['save','archive','muted','tutDone','ach','diff','daily','interfaceMode'];
+const STORE_KEYS=['save','archive','muted','tutDone','ach','diff','daily'];
 const store={mem:{},ref:null,busy:false,again:false,
   get(k){return this.mem[k]!=null?this.mem[k]:null},
   set(k,v){this.mem[k]=v==null?null:JSON.parse(JSON.stringify(v));LS.set('okno7-test.'+k,this.mem[k]);this.flush()},

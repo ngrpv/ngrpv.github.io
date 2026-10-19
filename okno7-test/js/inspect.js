@@ -2,71 +2,11 @@
 /* --- сверка --- */
 function setInsp(on,keepLens){W&&(W.insp=on);if(on){tut(2);if(!keepLens&&W&&W.lens)setLens(null,true)}$('#app').classList.toggle('inspect',on);$('#b-insp').setAttribute('aria-pressed',on);if(!on)clearSel()}
 $('#b-insp').onclick=()=>{if(!W)return;setInsp(!W.insp);if(W.insp)toast('Сверка: выберите два поля или поле и пункт регламента',null,2200)};
-const FIELD_LABELS={fio:'ФИО',birth:'Дата рождения',passnum:'Номер паспорта',snilsnum:'СНИЛС',sig:'Подпись',photo:'Фотография',expiry:'Срок паспорта',appdate:'Дата заявления',issued:'Дата справки',paydate:'Дата оплаты',paytime:'Время оплаты',sum:'Сумма',stamp:'Печать',holo:'Голограмма',qr:'QR-код',font:'Шрифт',reg:'Регистрация',phone:'Телефон',email:'Эл. почта',notify:'Уведомления',gosu:'Госуслуги',service:'Услуга',method:'Способ оплаты',ip:'IP-адрес',doctor:'Врач',ink:'Чернила',caps:'Заполнение'};
-function fieldLabel(kinds){return FIELD_LABELS[Object.keys(FIELD_LABELS).find(k=>kinds.includes(k))]||'Поле документа'}
-function differingParts(value,other){
-  const a=Array.from(String(value)),b=Array.from(String(other));let start=0,end=0;
-  while(start<a.length&&start<b.length&&a[start]===b[start])start++;
-  while(end<a.length-start&&end<b.length-start&&a[a.length-end-1]===b[b.length-end-1])end++;
-  return[a.slice(0,start).join(''),a.slice(start,a.length-end).join(''),end?a.slice(-end).join(''):''];
-}
-function clearSel(){
-  $$('.f.sel,.rules li.sel,.citizen.sel').forEach(e=>e.classList.remove('sel'));
-  if(W){W.sel=[];W.compareResult=null}
-  renderComparison();
-}
-function comparisonCaption(tok){
-  if(tok.t==='field'){
-    const f=W.v.fields[tok.fid],doc=tok.el.closest('.docwrap');return(doc?doc.dataset.label+' · ':'')+fieldLabel(f.kinds);
-  }
-  return tok.t==='rule'?'Регламент':tok.t==='today'?'Сегодня':tok.t==='face'?'Посетитель':'Образец';
-}
-function comparisonFragment(tok){
-  const el=document.createElement('div');el.className='comparison-fragment';
-  if(tok.t==='field'){
-    const f=W.v.fields[tok.fid];
-    if(!f.kinds.some(k=>['sig','photo','stamp','qr','holo','font'].includes(k))){
-      el.textContent=f.value==null?'Не заполнено':String(f.value);
-      if(tok.el.querySelector('.hand')){el.classList.add('hand');el.style.color=getComputedStyle(tok.el.querySelector('.hand')).color}
-      return el;
-    }
-  }else if(tok.t==='rule'){el.textContent=ruleText(tok.id);return el}
-  else if(tok.t==='today'){el.textContent=dd(G.today);return el}
-  const copy=tok.el.cloneNode(true);
-  [copy,...copy.querySelectorAll('*')].forEach(n=>{
-    ['id','data-fid','data-rule','data-sample','data-today','tabindex','role','aria-label','aria-pressed'].forEach(a=>n.removeAttribute(a));
-    n.classList.remove('sel','coach','okflash');
-  });
-  copy.querySelectorAll('.pen').forEach(n=>n.remove());copy.classList.remove('f','citizen','sample');
-  el.classList.add('comparison-art');if(tok.t==='face')el.classList.add('comparison-face');el.appendChild(copy);return el;
-}
-function renderComparison(){
-  const panel=$('#comparison'),pair=$('#comparison-pair'),r=W&&W.compareResult;
-  const show=!!(freeDesk()&&W&&W.insp&&W.v&&!W.v.done&&W.sel.length);
-  panel.hidden=!show;if(!show)return;
-  pair.replaceChildren();
-  W.sel.forEach(tok=>{const card=document.createElement('div'),cap=document.createElement('b');card.className='comparison-card';cap.textContent=comparisonCaption(tok);card.appendChild(cap);card.appendChild(comparisonFragment(tok));pair.appendChild(card)});
-  if(r&&r.bad&&W.sel.length===2&&W.sel.every(t=>t.t==='field')){
-    const fields=W.sel.map(t=>W.v.fields[t.fid]);
-    if(fields.every(f=>typeof f.value==='string')&&['fio','birth','passnum','snilsnum'].some(k=>fields.every(f=>f.kinds.includes(k)))){
-      [...pair.children].forEach((card,i)=>{const el=card.querySelector('.comparison-fragment'),p=differingParts(fields[i].value,fields[1-i].value),mark=document.createElement('mark');mark.textContent=p[1]||'∅';el.replaceChildren(document.createTextNode(p[0]),mark,document.createTextNode(p[2]))});
-    }
-  }
-  if(W.sel.length===1&&!r){const empty=document.createElement('div');empty.className='comparison-card comparison-empty';empty.textContent='Выберите второе поле или пункт регламента';pair.appendChild(empty)}
-  panel.dataset.result=r?(r.bad?'bad':r.ok?'good':'info'):'';
-  $('#comparison-result').textContent=r?r.msg:W.sel.length===2?'Фрагменты готовы к сверке':'Первый фрагмент выбран';
-  const b=$('#b-compare');b.disabled=W.sel.length!==2||!!r;b.textContent=r?'Сверено':'Сверить';
-}
-$('#b-compare-clear').onclick=()=>clearSel();
-$('#b-compare').onclick=()=>{if(W&&W.v&&!W.v.done&&W.sel.length===2&&!W.compareResult)finishEval(evalPair(W.sel[0],W.sel[1]))};
-$('#app').addEventListener('keydown',e=>{
-  if(!e.target.matches('[data-fid]')||!['Enter','Space'].includes(e.code))return;
-  e.preventDefault();e.stopPropagation();if(W&&!W.insp)setInsp(true);inspPick(e,e.target);
-});
+function clearSel(){$$('.f.sel,.rules li.sel,.citizen.sel').forEach(e=>e.classList.remove('sel'));if(W)W.sel=[]}
 $('#app').addEventListener('click',e=>inspPick(e,e.target));
 function inspPick(e,target){
   if(!W||!W.insp||!W.v||W.v.done)return;
-  if(target.closest('[data-tab],#comparison'))return;
+  if(target.closest('[data-tab]'))return;
   const fe=target.closest('[data-fid],[data-rule],[data-today],[data-sample],#cit');if(!fe)return;
   let tok;
   if(fe.id==='cit')tok={t:'face',el:fe};
@@ -75,16 +15,12 @@ function inspPick(e,target){
   else if(fe.hasAttribute('data-today'))tok={t:'today',el:fe};
   else{if(!W.v.fields[fe.dataset.fid])return;tok={t:'field',fid:fe.dataset.fid,el:fe}}
   e.preventDefault();
-  if(W.compareResult)clearSel();
   const ix=W.sel.findIndex(s=>s.el===fe);
-  if(ix>=0){fe.classList.remove('sel');W.sel.splice(ix,1);renderComparison();return}
-  if(W.sel.length===2)clearSel();
-  if(tok.t==='field')setDeskFocus(true);
+  if(ix>=0){fe.classList.remove('sel');W.sel.splice(ix,1);return}
   fe.classList.add('sel');W.sel.push(tok);SND.play('tick');if(W.sel.length===1&&tok.t==='field')tut(3);
   if(W.sel.length===1&&tok.t==='rule'&&RULES[tok.id].req){closeSheet();finishEval(evalReq(tok.id));return}
   const inSheet=!!fe.closest('#sheet');
-  if(W.sel.length===2){if(inSheet)closeSheet();if(freeDesk())renderComparison();else finishEval(evalPair(W.sel[0],W.sel[1]));return}
-  renderComparison();
+  if(W.sel.length===2){if(inSheet)closeSheet();finishEval(evalPair(W.sel[0],W.sel[1]));return}
   if(inSheet){closeSheet();toast(tok.t==='rule'?'Пункт выбран. Теперь нажмите поле документа':tok.t==='sample'?'Образец выбран. Теперь нажмите то же место в документе':'Дата выбрана. Теперь нажмите дату в документе',null,2000)}
 }
 function evalReq(id){const v=W.v;if(RULES[id].check(v))return{bad:true,rule:id,msg:'Документа нет: '+RULES[id].reason.toLowerCase()};return{ok:true,msg:'Документ на месте'}}
@@ -98,7 +34,7 @@ function evalPair(a,b){
     const k=['fio','birth','passnum','snilsnum','sig'].find(k=>fa.kinds.includes(k)&&fb.kinds.includes(k));
     if(!k)return{msg:'Эти данные нельзя сравнить'};
     if(k==='sig'){if(fa.value==null||fb.value==null)return mism('R_SIGN','Подписи нет');return fa.value===fb.value?{ok:true,msg:'Подписи совпадают'}:mism('R_SIGMATCH','Подписи различаются')}
-    if(String(fa.value)===String(fb.value))return{ok:true,msg:{fio:'ФИО совпадает',birth:'Даты рождения совпадают',passnum:'Номера паспортов совпадают',snilsnum:'Номера СНИЛС совпадают'}[k]||'Совпадает'};
+    if(String(fa.value)===String(fb.value))return{ok:true,msg:'Совпадает'};
     return mism({fio:'R_FIO',birth:'R_BIRTH',passnum:'R_PASSNUM',snilsnum:'R_SNILSNUM'}[k],{fio:'ФИО не совпадает',birth:'Даты рождения различаются',passnum:'Номер паспорта различается',snilsnum:'Номер СНИЛС различается'}[k]);
   }
   if(a.t==='field'&&b.t==='face'){if(!F(a).kinds.includes('photo'))return{msg:'Лицо сравнивают с фотографией в паспорте'};return v.photoDiff?mism('R_PHOTO','Лицо не похоже на фото'):{ok:true,msg:v.sex==='f'?'Похожа. Вроде бы.':'Похож. Вроде бы.'}}
@@ -123,7 +59,6 @@ function evalPair(a,b){
 function finishEval(r){
   tut(4);
   const v=W.v,sel=W.sel.slice();
-  W.compareResult=r;renderComparison();
   if(r.bad){
     SND.play('buzz');vib([20,40,20]);toast('Расхождение: '+r.msg,'bad',2200);
     sel.forEach(s=>{if(s.t==='field')s.el.insertAdjacentHTML('beforeend',penSVG())});
@@ -133,10 +68,7 @@ function finishEval(r){
     if(first&&v.bribe&&!v.bribe.upfront)setTimeout(()=>{if(W.v===v&&!v.done)offerBribe(v)},1400);
   }else if(r.ok){toast(r.msg,'good',1400);sel.forEach(s=>{s.el.classList.add('okflash');setTimeout(()=>s.el.classList.remove('okflash'),900)})}
   else toast(r.msg,null,1800);
-  if(!freeDesk()){
-    const work=W;
-    setTimeout(()=>{if(W===work&&W.v===v&&!freeDesk()&&W.compareResult===r)clearSel()},700);
-  }
+  setTimeout(()=>{sel.forEach(s=>s.el.classList.remove('sel'));if(W)W.sel=W.sel.filter(s=>!sel.includes(s))},700);
 }
 function pleadLine(v,rule){if(v.pleadFor)return v.pleadFor(rule);if(v.named||v.special)return sx(pick(v.lines.plead.length?v.lines.plead:['Ну как же так...']),v.sex);const own=PLEAD[rule];return sx(pick(own&&chance(.55)?own:v.lines.plead.length?v.lines.plead:['Ну как же так...']),v.sex)}
 

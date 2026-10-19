@@ -6,7 +6,8 @@ function stampDrag(btn,accept){
     const v=W.v,app=v.docEls&&v.docEls[0];if(!app)return;
     e.preventDefault();try{btn.setPointerCapture(e.pointerId)}catch(_){}
     const docEl=app.querySelector('.doc'),zone=app.querySelector('.stampzone');
-    revealStampZone(app);
+    if(activeDocIdx()!==0)scrollToDoc(app);
+    const zr0=zone.getBoundingClientRect(),ar0=app.getBoundingClientRect();if(zr0.bottom>ar0.bottom||zr0.top<ar0.top)app.scrollTop+=zr0.top-ar0.top-ar0.height*.45;
     zone.classList.add('target');
     const ar=$('#app').getBoundingClientRect(),g=document.createElement('div');g.className='stampghost';
     g.innerHTML=dStamp(accept?'ПРИНЯТО':'ОТКАЗАНО',accept?'#4b3fa3':'#b4222f',`ОКНО №7 · ${dd(G.today)}`);g.style.width=docEl.getBoundingClientRect().width*.62+'px';
@@ -85,9 +86,8 @@ async function decide(accept,reason,pt){
   const v=W.v;if(!v||v.done)return;v.done=true;W.busy=true;stampsEnabled(false);setInsp(false);hint(null);hideAsk();closeSheet();
   const res=judge(v,accept,reason);
   const app=v.docEls&&v.docEls[0];
-  if(app){if(activeDocIdx()!==0){scrollToDoc(app);await sleep(300)}if(!pt)revealStampZone(app);const doc=app.querySelector('.doc');placeImprint(doc,accept,pt,false);
+  if(app){if(activeDocIdx()!==0){scrollToDoc(app);await sleep(300)}const doc=app.querySelector('.doc');placeImprint(doc,accept,pt,false);
     const zr=doc.querySelector('.stampzone'),sg=document.createElement('div');sg.className='imprint';sg.style.cssText=`--r:-4deg;right:4%;top:${zr.offsetTop+zr.offsetHeight-30}px;width:30%;animation:none;mix-blend-mode:multiply`;sg.innerHTML=sigSVG(S.sig,'#2443a6',true,.25);doc.appendChild(sg)}
-  setDeskFocus(false);
   await sleep(700);
   if(res.slip)showSlip(res.slip);
   hud();

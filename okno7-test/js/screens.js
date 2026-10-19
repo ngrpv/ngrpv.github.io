@@ -10,7 +10,6 @@ const foundCount=()=>END_ORDER.filter(id=>archive()[id]).length;
 
 /* --- титул --- */
 function initTitle(){
-  applyInterfaceMode();
   const sv=store.get('save');
   const c=$('#b-cont');if(sv&&sv.v===2&&sv.day&&sv.run){c.hidden=false;c.textContent=`Продолжить: день ${sv.day} из 12`}else c.hidden=true;
   const fc=foundCount();$('#b-arch').textContent=`Архив · ${fc}/${END_ORDER.length}`;
@@ -130,7 +129,7 @@ function startDay(){
     <p>${D.p}</p>
     ${newR.length?`<p>С сегодняшнего дня в регламент окна №7 вносятся следующие пункты:</p><ol class="newrules">${newR.map(id=>`<li>${ruleText(id)}</li>`).join('')}</ol>`:S.day===1?`<p>Действующий регламент:</p><ol class="newrules">${CORE.map(id=>`<li>${ruleText(id)}</li>`).join('')}</ol>`:'<p>Новых пунктов нет. Действующий регламент соблюдать неукоснительно.</p>'}
     <div class="planbox"><span>План на день: <b>${G.plan}</b> ${plural(G.plan,"заявление","заявления","заявлений")}</span>${tariffLine}<span>День ${S.day} из 12</span></div>
-    ${S.day===1?'<p style="font:13px/1.45 var(--f-ui);background:#efe9d6;padding:8px 10px">Как работать: '+(freeDesk()?'раскладывайте сами бумаги по столу, касайтесь листа, чтобы поднять его наверх. Включите <b>«Сверку»</b>, выберите два поля (или поле и пункт регламента) и нажмите <b>«Сверить»</b>.':'листайте документы или выбирайте вкладку. Включите <b>«Сверку»</b> и выберите два поля (или поле и пункт регламента) — результат появится сразу.')+' Затем <b>перетащите печать</b> на графу «Отметка МФЦ» в заявлении и <b>смахните документы вверх</b> — вернуть гражданину.</p>':''}
+    ${S.day===1?'<p style="font:13px/1.45 var(--f-ui);background:#efe9d6;padding:8px 10px">Как работать: листайте документы на столе. Включите <b>«Сверку»</b> и нажмите два поля (или поле и пункт регламента), чтобы найти расхождение. Затем <b>перетащите печать</b> на графу «Отметка МФЦ» в заявлении и <b>смахните документы вверх</b> — вернуть гражданину.</p>':''}
     <div class="signrow"><span>Начальник отдела</span>${sigSVG(4242,'#2443a6',true,.2)}<span>П. П. Ступин</span><span id="brief-stamp"></span></div>
   </div>`;
   show('s-brief');$('#brief').scrollTop=0;
